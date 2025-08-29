@@ -6,7 +6,7 @@ gem 'pg', '0.21.0'
 
 gem 'pushpad'
 gem 'gon'
-
+gem 'tilt', '2.4.0'
 source 'https://rails-assets.org' do
   gem 'rails-assets-datetimepicker'
 end
