@@ -1,0 +1,27 @@
+= bootstrap_form_for @template,  url: (@template.new_record? ? notification_templates_path : notification_template_path(@template.uuid)),remote: true do |f|
+  - if @template.errors.any?
+    #error_explanation
+      %h2
+        = pluralize(@template.errors.count, "error")
+        prohibited this Number from being saved:
+      %ul
+        - @template.errors.full_messages.each do |message|
+          %li= message
+  .row
+    .col-12.required
+      = f.text_field :name, class: "form-control", placeholder: "Name"
+  .row
+    .col-12
+      = f.text_area :body, class: "form-control", placeholder: "Body"
+  .row
+    .col-12
+      = f.text_area :template_id, label: 'DLT Template ID', class: "form-control", placeholder: "DLT Approved Template ID"
+  .col-md-12
+    .form-group
+      = button_tag type: "submit", class: "btn btn-primary", data: {disable_with: "Please Wait..."} do
+        = fa_icon "floppy-o"
+        Save
+      = link_to notification_templates_path, class: "btn btn-danger" do
+        = fa_icon "close"
+        Cancel
+

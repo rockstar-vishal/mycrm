@@ -1,0 +1,73 @@
+.content-wrapper
+  .content-header
+    .container-fluid
+      .row.mb-2
+        .col-md-2
+          %ol.breadcrumb
+            %li.breadcrumb-item
+              %a{:href => "/"} Home
+            %li.breadcrumb-item.active
+              %a{:href => "call_logs"} Lead Tracking
+          %h1.m-0.text-dark Lead Tracking
+  .content
+  .container-fluid
+    .row
+      .col-lg-12
+        .card
+          .card-header
+            .pull-right
+              %a#adv-search{:href => "javascript:void(0);", :style => "margin-left:-2px;", :class=>"btn btn-primary btn-sm"}
+                Advanced Search
+                %i.fa.fa-angle-down
+          #adv-searchbox.box-body
+            = form_tag nil, method: :get, class: "filter-search-menu" do
+              = hidden_field_tag :is_advanced_search, true
+              .card-header
+                .custom-search
+                  .row
+                    .col-md-4
+                      .form-group
+                        %label Select Status
+                        = select_tag :lead_statuses, options_from_collection_for_select(@company.statuses, :id, :name, params[:lead_statuses]),multiple: true, class: "form-control multi-select-list"
+                    .col-md-4
+                      .form-group
+                        %label.label-block &nbsp;
+                        = button_tag type: "submit", class: "btn btn-primary btn-sm pd-fixes align-fixes" do
+                          = fa_icon "search"
+                        = link_to nil, class: "btn btn-primary btn-sm pd-fixes align-fixes" do
+                          = fa_icon "refresh"
+          .card-body
+            .table-responsive
+              %table.table.table-bordered.table-condensed.table-striped.tablesorter
+                %thead
+                  %tr
+                    %th Lead Name
+                    %th Status
+                    %th Assigned To
+                    %th Executive Call Count
+                    %th Total Call Count
+                  %tbody
+                    - if @leads.present?
+                      - @leads.each do |lead|
+                        %tr
+                          %td= link_to lead.name, histories_lead_path(lead), target: '_blank'
+                          %td= lead.status&.name
+                          %td= lead.user&.name
+                          - last_mark_dead_date = lead.audits.where("((audits.audited_changes -> 'status_id')::jsonb->>1)::INT IN (?)", @company.dead_status_ids.map(&:to_i)).last.created_at rescue nil
+                          %td
+                            - executive_call_log_count = lead.call_logs.where("user_id =? AND created_at > ?", lead.user_id, last_mark_dead_date.in_time_zone).count rescue 0
+                            - if executive_call_log_count > 0
+                              =  link_to executive_call_log_count, call_logs_leads_path(is_external: true, lead_ids: [lead.id], display_from: last_mark_dead_date.to_s, is_advanced_search: true, user_ids: [lead.user_id]), target: '_blank'
+                            - else
+                              = executive_call_log_count
+                          %td
+                            - call_log_count = lead.call_logs.where("created_at > ?", last_mark_dead_date.in_time_zone).count rescue 0
+                            - if call_log_count > 0
+                              =  link_to call_log_count, call_logs_leads_path(lead_ids: [lead.id], display_from: last_mark_dead_date.to_s, is_advanced_search: true, is_external: true), target: '_blank'
+                            - else
+                              = call_log_count
+
+              - if @leads.present?
+                %br
+                  %strong{style: "margin-left: 11px;"} Leads Count - #{@leads.count}
+                  = will_paginate @leads, :class  =>  "ct-pag"

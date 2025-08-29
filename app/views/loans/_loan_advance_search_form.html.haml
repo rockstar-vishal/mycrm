@@ -1,0 +1,114 @@
+#adv-searchbox.box-body
+  = form_tag nil, method: :get, class: "filter-search-menu" do
+    = hidden_field_tag :is_advanced_search, true
+    .row
+      .col-xs-6.col-md-2
+        .form-group
+          = text_field_tag :name, params[:name], class: "form-control", placeholder: "Customer Name"
+      .col-xs-6.col-md-2
+        .form-group
+          = text_field_tag :mobile, params[:mobile], class: "form-control", placeholder: "Mobile No."
+      .col-xs-6.col-md-2
+        .form-group
+          = text_field_tag :other_phones, params[:other_phones], class: "form-control", placeholder: "Other Phones"
+      .col-xs-6.col-md-2
+        .form-group
+          = text_field_tag :email, params[:email], class: "form-control", placeholder: "Email"
+      .col-xs-6.col-md-2
+        .form-group
+          = select_tag :project_ids, options_from_collection_for_select(current_user.company.projects, :id, :name, params[:project_ids]), multiple: true, class: "form-control multi-select-list", data: {prompt_name: 'Project'}
+      .col-xs-6.col-md-2
+        .form-group
+          = text_field_tag :lead_no, params[:lead_no], class: "form-control", placeholder: "Lead Number"
+      .col-xs-6.col-md-4
+        .form-group
+          = select_tag :source_ids, options_from_collection_for_select(current_user.company.sources, :id, :name, params[:source_ids]), prompt: "Lead Source", class: "form-control multi-select-list", multiple: true, data: {prompt_name: 'Source'}
+
+      .col-xs-6.col-md-2
+        .form-group
+          .input-group
+            .input-group-addon
+              = fa_icon "calendar"
+            = text_field_tag :ncd_from, params[:ncd_from], class: "form-control datetimepicker", placeholder: "Next Call Date From"
+      .col-xs-6.col-md-2
+        .form-group
+          .input-group
+            .input-group-addon
+              = fa_icon "calendar"
+            = text_field_tag :ncd_upto, params[:ncd_upto], class: "form-control datetimepicker", placeholder: "Next Call Date To"
+      .col-xs-6.col-md-2
+        .form-group
+          .input-group
+            .input-group-addon
+              = fa_icon "calendar"
+            = text_field_tag :created_at_from, params[:created_at_from], class: "form-control dateFormat", placeholder: "Created At From"
+      .col-xs-6.col-md-2
+        .form-group
+          .input-group
+            .input-group-addon
+              = fa_icon "calendar"
+            = text_field_tag :created_at_upto, params[:created_at_upto], class: "form-control dateFormat", placeholder: "Created At To"
+      .col-xs-6.col-md-2
+        .form-group
+          .input-group
+            .input-group-addon
+              = fa_icon "calendar"
+            = text_field_tag :visited_date_from, params[:visited_date_from], class: "form-control dateFormat", placeholder: "Visited Date From"
+      .col-xs-6.col-md-2
+        .form-group
+          .input-group
+            .input-group-addon
+              = fa_icon "calendar"
+            = text_field_tag :visited_date_upto, params[:visited_date_upto], class: "form-control dateFormat", placeholder: "Visited Date To"
+      
+      .w-100
+      .col-xs-6.col-md-3
+        .form-group
+          = label_tag 'Lead Status'
+          = select_tag "lead_statuses", options_from_collection_for_select(current_user.company.statuses, :id, :name, params[:lead_statuses]), class: "form-control multi-select-list", multiple: true, data: {prompt_name: 'Lead Status'}
+      .col-xs-6.col-md-3
+        .form-group
+          = label_tag 'Loan Status'
+          = select_tag "loan_statuses", options_from_collection_for_select(::Status.of_loans, :id, :name, params[:loan_statuses]), class: "form-control multi-select-list", multiple: true, data: {prompt_name: 'Loan Status'}
+      .col-md-2
+        .form-group.selct-check.mt-35
+          = label_tag "Visited"
+          = check_box_tag 'visited', true, (params[:visited] == "true")
+      .w-100
+      .col-xs-6.col-md-12
+        .form-group
+          = text_field_tag :comment, params[:comment], class: "form-control", placeholder: "Comment"
+      .w-100
+      .col-xs-6.col-md-3
+        .form-group
+          = label_tag "Loan User"
+          = select_tag "loan_users[]", options_from_collection_for_select(current_user.manageables.loan_enabled, :id, :name, params[:loan_users]), class: "form-control multi-select-list", multiple: true, data: {prompt_name: 'Loan Users'}
+      .col-xs-6.col-md-3
+        .form-group
+          = label_tag "Lead User"
+          = select_tag "lead_users[]", options_from_collection_for_select(current_user.manageables, :id, :name, params[:lead_users]), class: "form-control multi-select-list", multiple: true
+      .col-xs-6.col-md-3
+        .form-group
+          = label_tag "Dead Reason"
+          = select_tag :dead_reasons, options_from_collection_for_select(@company.reasons.active, :id, :reason, params[:dead_reasons]), class: "form-control multi-select-list", multiple: true
+      .w-100
+      .col-xs-6.col-md-2
+        .form-group
+          = button_tag type: "submit", class: "btn btn-primary btn-flatbtn" do
+            = fa_icon "search"
+            Search
+:javascript
+
+  $('.multi-select-list').each(function(){
+    var text = $(this).closest('select').data('prompt-name')
+    text = text ? 'Select '+ text : 'Please Select'
+    $(this).multiselect({
+      numberDisplayed: 1,
+      enableFiltering: true,
+      enableCaseInsensitiveFiltering: true,
+      nonSelectedText: text,
+      includeSelectAllOption: true,
+      buttonWidth: '100%',
+      maxHeight: 350,
+    });
+  });

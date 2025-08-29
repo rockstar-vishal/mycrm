@@ -1,0 +1,52 @@
+= bootstrap_form_for @exotel_sid, url: (@exotel_sid.new_record? ? exotel_sids_path : exotel_sid_path(@exotel_sid.uuid)), remote: true do |f|
+  - if @exotel_sid.errors.any?
+    #error_explanation
+      %h2
+        = pluralize(@exotel_sid.errors.count, "error")
+        prohibited this ExoPhone from being saved:
+      %ul
+        - @exotel_sid.errors.full_messages.each do |message|
+          %li= message
+  .row
+    .col-md-6.required
+      .form-group
+        = f.number_field :number, class: "form-control", placeholder: "ExoPhone Number"
+    .col-md-6
+      .form-group
+        = f.text_field :description, class: "form-control", placeholder: "Description"
+    .col-md-6
+      .form-group
+        = f.select :project_id, options_from_collection_for_select(@current_user.company.projects, :id, :name, f.object.project_id), {prompt: true, label: 'Project'}, class: 'form-control multiselect', required: true
+    .col-md-6
+      .form-group
+        = f.select :source_id, options_from_collection_for_select(@current_user.company.sources, :id, :name, f.object.source_id), {prompt: true, label: 'Source'}, class: 'form-control'
+    .col-md-6
+      .form-group
+        = f.select :default_numbers, options_from_collection_for_select(current_user.company.users.active.where.not(mobile: ''), :mobile, :numbers_with_name, f.object.default_numbers), {}, class: 'form-control multi-select-list', multiple: true
+    .col-md-2
+      .form-group.mt-4.checkboxSpacing
+        = f.check_box :is_active, class: 'custom-checkbox'
+    .col-md-2
+      .form-group.mt-4.checkboxSpacing
+        = f.check_box :only_inbound_service, class: 'custom-checkbox', label: 'Is Incoming?'
+    .col-md-2
+      .form-group.mt-4.checkboxSpacing
+        = f.check_box :is_round_robin_enabled, class: 'custom-checkbox', label: 'RR Enabled?'
+  %div{align: "center"}
+    .col-md-12
+      .form-group
+        = button_tag type: "submit", class: "btn btn-primary", data: {disable_with: "Please Wait..."} do
+          = fa_icon "floppy-o"
+          Save
+        = link_to call_ins_path, class: "btn btn-danger" do
+          = fa_icon "close"
+          Cancel
+:javascript
+  $('.multi-select-list').multiselect({
+    numberDisplayed: 1,
+    enableFiltering: true,
+    enableCaseInsensitiveFiltering: true,
+    nonSelectedText: 'Please Select',
+    includeSelectAllOption: true,
+    buttonWidth: '100%'
+  });

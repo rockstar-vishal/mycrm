@@ -1,0 +1,137 @@
+.content-wrapper
+  .content-header
+    .container-fluid
+      .row.mb-2
+        .col-md-9
+          %ol.breadcrumb
+            %li.breadcrumb-item
+              %a{:href => "/"} Home
+            %li.breadcrumb-item.active Site Visit Planned Tracker
+          %h1.m-0.text-dark Site Visit Planned Tracker
+  .content
+    .container-fluid
+      .row
+        .col-lg-12
+          .card
+            .card-header
+              .pull-right
+                %a#adv-search{:href => "javascript:void(0);", :style => "margin-left:-2px;", :class=>"btn btn-primary btn-sm"}
+                  Advanced Search
+                  %i.fa.fa-angle-down
+              = render 'reports_button', locals: {report_name: :site_visit_planned_tracker}
+            #adv-searchbox.box-body
+              = form_tag nil, method: :get, class: "filter-search-menu" do
+                .card-header
+                  .custom-search
+                    .row
+                      .col-md-6
+                        = render partial: 'shared/date_range_display'
+                      .col-md-6
+                        = render partial: 'shared/updated_at_filter'
+                      .col-md-6
+                        = render partial: "shared/site_visit_date_range"
+                      .col-md-3
+                        = render partial: 'shared/projects_filter'
+                      - if current_user.check_source_presence
+                        .col-md-3
+                          = render partial: 'shared/sources_filter'
+                      .col-md-3
+                        = render partial: 'shared/users_filter'
+                      .col-md-3
+                        = render partial: 'shared/managers_filter'
+                      - if current_user.company.is_allowed_field?("customer_type")
+                        .col-md-3
+                          = render partial: 'shared/customer_type_filter'
+                      .col-md-3
+                        .form-group
+                          %label.label-block &nbsp;
+                          = button_tag type: "submit", class: "btn btn-primary btn-sm pd-fixes align-fixes" do
+                            = fa_icon "search"
+                          = link_to nil, class: "btn btn-primary btn-sm pd-fixes align-fixes" do
+                            = fa_icon "refresh"
+            .card-body
+              - plottable = {}
+              .table-responsive
+                %table.table.table-bordered.table-hover.dataTables.table-sm.responsive.nowrap{style: 'width:100%!important'}
+                  %thead
+                    %tr
+                      %th.all User
+                      %th Site Visit Planned
+                      %th Site visit done
+                      %th Site Visit Postponed
+                      %th Site visit cancel
+                      %th Revisit
+                      %th Booked Percentage
+                      %th Token Percentage
+                  - overall_counts = 0
+                  %tbody
+                    - @users.each do |user|
+                      - this_user_data = @data.where(:user_id=>user.id)
+                      - user_total = this_user_data.count
+                      - plottable[user.name] = user_total
+                      - overall_counts += user_total
+                      %tr
+                        %td= user.name
+                        %td
+                          = link_to ld_path(:assigned_to=>[user.id], site_visit_planned: true), target: "_blank" do
+                            = user_total
+                        %td
+                          = link_to ld_path(:assigned_to=>[user.id], site_visit_done: true, site_visit_planned: true), target: "_blank" do
+                            - visit_done = this_user_data.joins{visits}.where(visits: {is_visit_executed: true}).uniq.size
+                            = visit_done
+                            = "(#{((visit_done / this_user_data.size.to_f) * 100).round(2)}%)"
+                        %td
+                          = link_to ld_path(:assigned_to=>[user.id], postponed: true, site_visit_planned: true), target: "_blank" do
+                            = this_user_data.joins{visits}.where("leads_visits.is_postponed = 't'").uniq.size
+                        %td
+                          = link_to ld_path(:assigned_to=>[user.id], visit_cancel: true, site_visit_planned: true), target: "_blank" do
+                            = this_user_data.joins{visits}.where("leads_visits.is_canceled = 't'").uniq.size
+                        %td
+                          = link_to ld_path(:assigned_to=>[user.id], revisit: true, site_visit_planned: true), target: "_blank" do
+                            = this_user_data.where(revisit: true).size
+                        %td
+                          = link_to ld_path(:assigned_to=>[user.id], booked_leads: true, site_visit_planned: true), target: "_blank" do
+                            - visit_done = this_user_data.joins{visits}.uniq.size
+                            - booked = this_user_data.booked_for(current_user.company).count
+                            = booked
+                            = "(#{((booked.to_f / visit_done.to_f) * 100).round(2)}%)"
+                        %td
+                          = link_to ld_path(:assigned_to=>[user.id], token_leads: true, site_visit_planned: true), target: "_blank" do
+                            - visit_done = this_user_data.joins{visits}.uniq.size
+                            - tokened = this_user_data.where(status_id: current_user.company.token_status_ids).count
+                            = tokened
+                            = "(#{((tokened.to_f / visit_done.to_f) * 100).round(2)}%)"
+                  - if @data.present?
+                    %tbody
+                      - visit_data = @data.joins{visits}
+                      %tr
+                        %td Total
+                        %td
+                          = link_to ld_path(site_visit_planned: true), target: "_blank" do
+                            = @data.size
+                        %td
+                          = link_to ld_path(site_visit_done: true, site_visit_planned: true), target: "_blank" do
+                            - visit_done = visit_data.where(visits: {is_visit_executed: true}).uniq.size
+                            = visit_done
+                            = "(#{((visit_done / @data.size.to_f) * 100).round(2)}%)"
+                        %td
+                          = link_to ld_path(postponed: true, site_visit_planned: true), target: "_blank" do
+                            = visit_data.where("leads_visits.is_postponed = 't'").uniq.size
+                        %td
+                          = link_to ld_path( visit_cancel: true, site_visit_planned: true), target: "_blank" do
+                            = visit_data.where("leads_visits.is_canceled = 't'").uniq.size
+                        %td
+                          = link_to ld_path(revisit: true, site_visit_planned: true), target: "_blank" do
+                            = @data.where(revisit: true).size
+                        %td
+                          = link_to ld_path(booked_leads: true, site_visit_planned: true), target: "_blank" do
+                            - visit_done = visit_data.uniq.size
+                            - booked = @data.booked_for(current_user.company).count
+                            = booked
+                            = "(#{((booked.to_f / visit_done.to_f) * 100).round(2)}%)"
+                        %td
+                          = link_to ld_path(token_leads: true, site_visit_planned: true), target: "_blank" do
+                            - visit_done = visit_data.uniq.size
+                            - tokened = @data.where(status_id: current_user.company.token_status_ids).count
+                            = tokened
+                            = "(#{((tokened.to_f / visit_done.to_f) * 100).round(2)}%)"

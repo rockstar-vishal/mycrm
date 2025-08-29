@@ -1,0 +1,2 @@
+$('.submit-notification').hide();
+$('#updated_template_details').html("<%= escape_javascript(render partial: 'final_notification_detail',  locals: { notification: @notification, lead: @lead})%>");

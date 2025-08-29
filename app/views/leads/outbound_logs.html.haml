@@ -1,0 +1,130 @@
+.content-wrapper
+  .content-header
+    .container-fluid
+      .row.mb-2
+        .col-md-2
+          %ol.breadcrumb
+            %li.breadcrumb-item
+              %a{:href => "/"} Home
+            %li.breadcrumb-item.active
+              %a{:href => "call_logs"} Outbound Calls
+          %h1.m-0.text-dark OutboundCalls
+        - unless params[:is_advanced_search].present? || params[:search_query].present?
+          .col-md-10.text-right
+            .lead-card.elevation-3
+              %h5
+                Missed Calls
+                = link_to @call_logs.missed.count, outbound_logs_leads_path(missed_calls: true, is_advanced_search: true)
+            .lead-card.elevation-3
+              %h5
+                Today's Outbound Calls
+                = link_to @call_logs.todays_calls.count, outbound_logs_leads_path(todays_calls: true, is_advanced_search: true)
+            .lead-card.elevation-3
+              %h5
+                Past Outbound Calls
+                = link_to @call_logs.past_calls.count, outbound_logs_leads_path(past_calls_only: true, is_advanced_search: true)
+  .content
+  .container-fluid
+    .row
+      .col-lg-12
+        .card
+          .card-header
+            .pull-right
+              %a#adv-search{:href => "javascript:void(0);", :style => "margin-left:-2px;", :class=>"btn btn-primary btn-sm"}
+                Advanced Search
+                %i.fa.fa-angle-down
+          #adv-searchbox.box-body
+            = form_tag nil, method: :get, class: "filter-search-menu" do
+              = hidden_field_tag :is_advanced_search, true
+              .card-header
+                .custom-search
+                  .row
+                    .col-xs-6.col-md-2
+                      .form-group
+                        .input-group
+                          .input-group-addon
+                            = fa_icon "calendar"
+                          = text_field_tag :created_at_from, params[:created_at_from], class: "form-control dateFormat", placeholder: "Created At From"
+                    .col-xs-6.col-md-2
+                      .form-group
+                        .input-group
+                          .input-group-addon
+                            = fa_icon "calendar"
+                          = text_field_tag :created_at_upto, params[:created_at_upto], class: "form-control dateFormat", placeholder: "Created At To"
+                    .col-xs-6.col-md-2
+                      .form-group
+                        = button_tag type: "submit", class: "btn btn-primary btn-flatbtn" do
+                          = fa_icon "search"
+                          Search
+          = render partial: 'leads/dailing_modal'
+          .card-body
+            .table-responsive
+              %table.table.table-bordered.table-condensed.table-striped.tablesorter
+                %thead
+                  %tr
+                    %th Lead Name
+                    %th Executive
+                    %th From
+                    %th To
+                    %th Call
+                    %th Start Time
+                    %th End Time
+                    %th Direction
+                    %th OverAll Call Duration
+                    %th Call Status
+                    %th Call Type
+                    %th Recording Url
+                    %th Action
+                  %tbody
+                    - if @call_logs.present?
+                      - @call_logs.each do |call_log|
+                        %tr
+                          %td= link_to call_log.lead.name, histories_lead_path(call_log.lead), target: '_blank'
+                          %td= call_log.user&.name
+                          %td= call_log.display_from_number(current_user) rescue nil
+                          %td= call_log.display_to_number(current_user) rescue nil
+                          %td
+                            - if call_log.lead.is_phone_number_valid? && current_user.click_to_call_enabled? && current_user.sid_active? && current_user.mobile.present?
+                              = link_to "javascript:void(0)", class: "call btn btn-primary m-r-5",  style: "padding: 0px; width: 18px;", data: {lead_id: call_log.lead.id} do
+                                = fa_icon "phone"
+                            - else
+                              N/A
+                          %td= call_log.start_time&.strftime("%e %b %Y,%l:%M:%S %p")
+                          %td= call_log.end_time&.strftime("%e %b %Y,%l:%M:%S %p")
+                          %td= call_log.direction
+                          %td= call_log.duration
+                          %td= call_log.status
+                          %td= call_log.call_type
+                          %td
+                            - if call_log.recording_url.present?
+                              %audio.player{:controls => ""}
+                                %source{:src => call_log.recording_url, :type => "audio/mp3"}
+                            - else
+                              N/A
+                          %td
+                            = link_to edit_lead_path(call_log.lead), remote: true, class: "btn btn-primary m-r-5", style: "padding: 4px 8px; width: auto; border-radius: 50%!important;" do
+                              = fa_icon "pencil"
+              - if @call_logs.present?
+                %br
+                  %strong{style: "margin-left: 11px;"} Call Logs Count - #{@call_logs.count}
+                  = will_paginate @call_logs, :class  =>  "ct-pag"
+:javascript
+  $('.call').click(function(){
+    var lead_id = $(this).data('leadId');
+    $("#connected-modal").show();
+    $.ajax({
+      type: 'POST',
+      url: '/leads/'+lead_id+'/make_call',
+      dataType: 'json',
+      success: function(response) {
+        $("#connected-modal").hide();
+        if(response["success"]){
+          $('#success-connected-modal').show();
+        }else
+        {
+          console.log(response);
+          $('#failed-connected-modal').show();
+        }
+      }
+    });
+  });

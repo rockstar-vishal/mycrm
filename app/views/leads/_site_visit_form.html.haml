@@ -1,0 +1,131 @@
+.modal-header
+  %h5.modal-title Add Visit
+  %button.close{"aria-label" => "Close", "data-dismiss" => "modal", :type => "button"}
+    %span{"aria-hidden" => "true"} ×
+.modal-body
+  = bootstrap_form_for @lead, url: :create_visit_lead, method: :post, remote: true do |f|
+    - if @lead.errors.any?
+      #error_explanation
+        %h2
+          = pluralize(@lead.errors.count, "error")
+          prohibited this Lead from being saved:
+        %ul
+          - @lead.errors.full_messages.each do |message|
+            %li= message
+    = f.fields_for :visits, @visits, remote: true do |f|
+      = hidden_field_tag :authenticity_token, form_authenticity_token
+      = hidden_field_tag :enable_advance_visits, @lead.company.setting.present? && @lead.company.enable_advance_visits
+      .row
+        .col-md-6
+          = f.text_field :date, label: 'Visit Date', class: "form-control dateFormat", placeholder: "Visit Date"
+        - if @company.is_sv_project_enabled
+          .col-md-6
+            .form-group.ch-select
+              = f.select :project_ids, options_from_collection_for_select(current_user.company.projects, :id, :name, f.object.project_ids), { label: 'Projects'}, {class: 'form-control chosen-select', multiple: true}
+        .w-100
+        .col-md-6#check_visit_executed{:style => ("display:none;" unless (@lead.company.setting.present? && @lead.company.enable_advance_visits))}
+          .row
+            .col-md-6
+              = f.check_box :is_visit_executed, class: "visit_executed", style: "margin-top: 40px;"
+            .col-md-6
+              = f.check_box :is_postponed, class: "visit_postponed", style: "margin-top: 40px;"
+            .col-md-6
+              = f.check_box :is_canceled, class: "visit_postponed", style: "margin-top: 40px;"
+        - if @company.is_allowed_for_visits?('location')
+          .col-md-6
+            = f.text_field :location, class: "form-control", placeholder: "Location"
+        - if @company.is_allowed_for_visits?('surronding')
+          .col-md-6
+            = f.text_field :surronding, class: "form-control", placeholder: "Surronding"
+        - if @company.is_allowed_for_visits?('finalization_period')
+          .col-md-6
+            = f.text_field :finalization_period, class: "form-control", placeholder: "Finalization Period"
+        .visit_executed_fields
+          .col-md-6
+            = f.file_field :site_visit_form, label: 'Visit Form', class: "form-control"
+      .visit_executed_fields
+        .row
+          .col-md-12
+            = f.text_area :comment, label: 'Visit Comment', class: "form-control", rows: "4", cols: "10", placeholder: "Comment"
+      - if @company.visits_allowed_fields.present?
+        .form-group
+          = button_tag type: "button", class: "btn btn-primary finance" do
+            Finances
+      #finance-content{:style => ("display:none;")}
+        .row
+          - if @company.is_allowed_for_visits?('loan_sanctioned')
+            .col-md-6
+              = f.select :loan_sanctioned, options_for_select(['Yes', 'No'], f.object.loan_sanctioned), {prompt: true, label: "Loan Sanctioned"}, {class: "form-control"}
+          - if @company.is_allowed_for_visits?('bank_name')
+            .col-md-6
+              = f.select :bank_name, options_for_select(Leads::Visit::BANK_NAMES, f.object.bank_name), {:prompt=>true}
+          - if @company.is_allowed_for_visits?('loan_amount')
+            .col-md-6
+              = f.text_field :loan_amount, class: "form-control", placeholder: "Loan Amount"
+          - if @company.is_allowed_for_visits?('eligibility')
+            .col-md-6
+              = f.text_field :eligibility, class: "form-control", placeholder: "Eligibility"
+          - if @company.is_allowed_for_visits?('loan_requirements')
+            .col-md-6
+              = f.text_field :loan_requirements, class: "form-control", placeholder: "Loan Requirements"
+          - if @company.is_allowed_for_visits?('own_contribution_minimum')
+            .col-md-6
+              = f.text_field :own_contribution_minimum, class: "form-control", placeholder: "Minimum Own Contriution", label: "Minimum Own Contribution"
+          - if @company.is_allowed_for_visits?('own_contribution_maximum')
+            .col-md-6
+              = f.text_field :own_contribution_maximum, class: "form-control", placeholder: "Maximum Own Contriution", label: "Maximum Own Contribution"
+      .col-md-12
+        .form-group
+          = button_tag type: "submit", class: "btn btn-primary", data: {disable_with: "Please Wait..."} do
+            = fa_icon "floppy-o"
+            Save
+          = link_to lead_path(@lead), remote: true, class: "btn btn-danger" do
+            = fa_icon "close"
+            Cancel
+:javascript
+  $('.dateFormat').datetimepicker({
+    timepicker: false,
+    format:'d/m/Y'
+  });
+  $(".finance").click(function(){
+    $("#finance-content").toggle();
+  });
+  var enable_advance_visit
+  $(document).ready(function(){
+    enable_advance_visit = $('#enable_advance_visits').val();
+  })
+  $(function(){
+    $("#lead_visits_attributes_0_is_postponed").change(function(){
+      if(this.checked){
+        $("#lead_visits_attributes_0_is_visit_executed").prop('disabled', true);
+        $("#lead_visits_attributes_0_is_visit_executed").prop('checked', false);
+      }else{
+        $("#lead_visits_attributes_0_is_visit_executed").prop('disabled', false);
+      }
+    })
+    $('#lead_visits_attributes_0_is_visit_executed').change(function(){
+      var isExecutedChecked = this.checked
+      loadExecutedFields(isExecutedChecked);
+    })
+  })
+  var isExecutedChecked = $('#lead_visits_attributes_0_is_visit_executed').is(":checked");
+  loadExecutedFields(isExecutedChecked);
+  function loadExecutedFields(is_executed){
+    if(enable_advance_visit=="true"){
+      if(is_executed){
+        $("#lead_visits_attributes_0_is_postponed").prop('checked', false);
+        $("#lead_visits_attributes_0_is_postponed").prop('disabled', true);
+        $(".visit_executed_fields").show();
+      }else{
+        $("#lead_visits_attributes_0_is_postponed").prop('disabled', false);
+        $(".visit_executed_fields").hide();
+      }
+    }else{
+      $(".visit_executed_fields").show();
+    }
+  }
+  $('.chosen-select').chosen({
+    allow_single_deselect: true,
+    no_results_text: 'No results matched',
+    width: 'auto'
+  });

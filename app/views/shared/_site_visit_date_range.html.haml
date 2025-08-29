@@ -1,0 +1,15 @@
+.row
+  .col-md-6
+    .form-group
+      = label_tag :site_visit_from, 'Site Visit Planned From', class: 'control-label'
+      .input-group
+        %span.input-group-addon
+          = fa_icon 'calendar'
+        = text_field_tag :site_visit_from, params[:site_visit_from], class: 'form-control dateFormat pull-right', required: true
+  .col-md-6
+    .form-group
+      = label_tag :site_visit_upto, 'Site Visit Planned Upto', class: 'control-label'
+      .input-group
+        %span.input-group-addon
+          = fa_icon 'calendar'
+        = text_field_tag :site_visit_upto, params[:site_visit_from], class: 'form-control dateFormat pull-right', required: true

@@ -1,0 +1,40 @@
+.content-wrapper
+  .content-header
+    .container-fluid
+      .row.mb-2
+        .col-md-9
+          %ol.breadcrumb
+            %li.breadcrumb-item
+              %a{:href => "/"} Home
+            %li.breadcrumb-item.active Search Histories
+          %h1.m-0.text-dark Search Histories
+  .content
+    .container-fluid
+      .row
+        .col-lg-12
+          .card
+            .card-header 
+              %h4.mb-0 Search Histories
+            .card-body
+              .table-responsive
+                %table.table.table-bordered.table-hover.dataTables.table-sm.responsive.nowrap{style: 'width:100%!important'}
+                  %thead
+                    %tr
+                      %th.desktop #
+                      %th.all Name
+                      %th.all Execute
+                      %th.all Action
+                  %tbody
+                    - @histories.each.with_index(1) do |history, i|
+                      %tr
+                        %td= i
+                        %td= history.name
+                        %td
+                          = link_to "Execute", leads_path(:is_advanced_search => true, :save_search_id=> history.id), class: "btn btn-primary m-r-5", style: "padding: 3px; width: 65px;", target: "_blank"
+                        %td
+                          = link_to users_search_history_path(history), class: "btn btn-danger", method: :delete,
+                            data: {:confirm => "Would you like to permanently delete this search?", "commit-class" => "btn btn-success", "cancel-class" => "btn btn-danger"}, style: "padding: 3px; width: 65px;" do
+                            Delete
+          - if @histories.present?
+            .pagination-custom-holder
+              %strong{style: "margin-left: 0;"} Searches Count - #{@histories.count}

@@ -1,0 +1,343 @@
+= bootstrap_form_for(@lead) do |f|
+  - if @lead.errors.any?
+    #error_explanation
+      %h2
+        = pluralize(@lead.errors.count, "error")
+        prohibited this Lead from being saved:
+      %ul
+        - @lead.errors.full_messages.each do |message|
+          %li= message
+  .row
+    - if @company.is_allowed_field?("customer_type")
+      .col-md-3{class: ("required" if @company.is_required_fields?("customer_type"))}
+        .form-group
+          = f.select :customer_type, options_for_select(Lead.customer_types.keys, f.object.customer_type), { prompt: 'Please Select'},{class: 'form-control', required: @company.is_required_fields?("customer_type")}
+    - if @company.is_allowed_field?('name')
+      .col-md-3{class: ("required" if @company.is_required_fields?("name"))}
+        .form-group
+          = f.text_field :name, class: "form-control", placeholder: "Name", required: @company.is_required_fields?("name")
+    - if @company.is_allowed_field?("mobile")
+      - unless current_user.is_telecaller?
+        .col-md-3{class: ("required" if @company.is_required_fields?("mobile"))}
+          .form-group
+            = f.text_field :mobile, class: "form-control", placeholder: "Mobile", required: @company.is_required_fields?("mobile")
+    - if @company.is_allowed_field?("email")
+      .col-md-3{class: ("required" if @company.is_required_fields?("email"))}
+        .form-group
+          = f.text_field :email, class: "form-control", placeholder: "Primary Email", label: "Primary Email", required: @company.is_required_fields?("email")
+    - if @company.is_allowed_field?("project_id")
+      - label = @company.find_label("project_id").present? ? (@company.find_label("project_id").custom_value.present? ? @company.find_label("project_id").custom_value : @company.find_label("project_id").default_value) : 'Project'
+      .col-md-3.required.ch-select
+        .form-group
+          = f.select :project_id, options_from_collection_for_select(@company.projects.active, :id, :name, @lead.project_id), {prompt: true, label: label}, class: 'form-control chosen-select'
+    - if @company.requirement?
+      = render "requirement_form", :f => f
+    - if @company.role_statuses.present?
+      - statuses = current_user.statuses_roles
+      .col-md-3.required
+        .form-group
+          = f.select :status_id, options_from_collection_for_select(statuses.latest_first, :id, :name, f.object.status_id), {include_blank: "Lead Status"}, {class: 'form-control', data: {booked_id: @company.booking_done_id, dead_status_id:  @company.dead_status_ids, visit_planned_id: @company.expected_site_visit_id, company_hide_ncd: @company.setting&.hide_next_call_date}}
+    - else
+      .col-md-3.required
+        .form-group
+          = f.select :status_id, options_from_collection_for_select(@company.statuses.latest_first, :id, :name, f.object.status_id), {include_blank: "Lead Status"}, {class: 'form-control', data: {enable_booked_fields: (@company.setting.present? && @company.enable_booking_done_fields),booked_id: @company.booking_done_id, dead_status_id:  @company.dead_status_ids, visit_planned_id: @company.expected_site_visit_id, company_hide_ncd: @company.setting&.hide_next_call_date, is_tentative_visit_required: f.object.company.is_required_fields?("tentative_visit_planned"), is_dead_reason_require: @company.is_required_fields?('dead_reason_id'), token_status_id: @company.token_status_ids}}
+    - if @company.is_allowed_field?("presale_stage_id")
+      .col-md-3{class: ("required" if @company.is_required_fields?('presale_stage_id'))}
+        = f.select :presale_stage_id, options_from_collection_for_select(f.object.selectable_company_stages, :stage_id, :stage_name, f.object.presale_stage_id), {include_blank: "Select Lead Stage"}, {required: @company.is_required_fields?('presale_stage_id')}
+    - if @company.setting.present? && @company.enable_booking_done_fields
+      #booking-done-fields.row{:style => ("display:none;" unless @lead.status_id == @company.booking_done_id)}
+        .col-md-6.required
+          .form-group
+            = f.text_field :booking_date, :value=>(Date.parse(@lead.booking_date.to_s) rescue nil), class: "form-control pull-right datetimepicker", placeholder: "Booking Date"
+        .col-md-6.required
+          = f.file_field :booking_form, label: 'Booking Form', class: "form-control"
+    #dead-reason.row{:style => ("display:none;" unless @company.dead_status_ids.include?(f.object.status_id.to_s))}
+      .col-md-3.required
+        .form-group
+          = f.select :dead_reason_id, options_from_collection_for_select(@company.reasons.active, :id, :reason, f.object.dead_reason_id), {include_blank: "Dead Reason"},{class: "form-control multiselect"}
+      .col-md-3
+        .form-group
+          = f.text_field :dead_sub_reason, class: "form-control", placeholder: "Sub Reason"
+    - if @company.token_status_ids.reject(&:blank?).present?
+      .col-md-3.required#token_status_fields{:style => ("display:none;" unless @company.token_status_ids.include?(@lead.status_id.to_s))}
+        .form-group
+          = f.text_field :token_date, :value=>(Date.parse(@lead.token_date.to_s) rescue nil), class: "form-control pull-right datetimepicker", placeholder: "Token Date"
+    .col-md-3#tentative-visit-planned{:style => ("display:none;" unless @lead.status_id == @company.expected_site_visit_id), class: ("required" if @company.is_required_fields?("tentative_visit_planned"))}
+      .form-group
+        = f.text_field :tentative_visit_planned, :value=>(Time.zone.parse(@lead.tentative_visit_planned.to_s).to_s rescue nil), class: "form-control pull-right datetimepicker", placeholder: "Planned Visit Date & Time"
+    .col-md-3#ncd_{:style => ("display:none;" if @company.setting&.hide_next_call_date && @company.dead_status_ids.include?(f.object.status_id.to_s)), :class=> ("required" if f.object.is_ncd_required?)}
+      .form-group
+        = f.text_field :ncd, :value=>(Time.zone.parse(@lead.ncd.to_s).to_s rescue nil), class: "form-control datetimepickerncd", placeholder: "Next Call Date", label: "Next Call Date", data: {ncd_required: @company.is_required_fields?("ncd"), non_mandatory: @company.setting.present? && @company.set_ncd_non_mandatory_for_booked_status}, required: f.object.is_ncd_required?
+    - users = @company.can_assign_all_users ? @company.users.active : @company.users.active.where(:id=>current_user.manageable_ids)
+    -if f.object.new_record? || users.ids.include?(f.object.user_id)
+      .col-md-3{class: ("required" if @company.is_required_fields?("user_id"))}
+        .form-group
+          = f.select :user_id, options_from_collection_for_select(users.order('name'), :id, :name, @company.default_lead_user_enable && @lead.new_record? ? current_user.id : @lead.user_id), {prompt: (!current_user.is_executive?), label: 'Assign To'}, class: 'form-control', required: @company.is_required_fields?("user_id")
+    - can_show = (@company.managerwise_closing_executive_active && !current_user.is_meeting_executive? && current_user.is_executive?) ? (f.object.closing_executive.blank? ? true : false) : (@company.can_assign_all_users ? true : users.ids.include?(f.object.closing_executive) || f.object.closing_executive.blank?)
+    - if @company.setting.present? && @company.enable_meeting_executives && @company.is_allowed_field?("closing_executive") && can_show
+      .col-md-3
+        .form-group
+          - if @company.managerwise_closing_executive_active
+            - users = current_user.is_executive? ? current_user.company.users.managers_role : (@company.can_assign_all_users ? @company.users.active : @company.users.active.where(:id=>current_user.manageable_ids))
+          - else
+            - users = @company.can_assign_all_users ? @company.users.active : @company.users.active.where(:id=>current_user.manageable_ids)
+          = f.select :closing_executive, options_from_collection_for_select(users.meeting_executives.order('name'), :id, :name, @lead.closing_executive), {prompt: true, label: 'Closing Executive'}, class: 'form-control'
+    - if f.object.new_record? ? true : current_user.check_source_presence
+      .col-md-3.required
+        .form-group
+          = f.select :source_id, options_from_collection_for_select(@company.sources, :id, :name, f.object.source_id), {include_blank: "Source"}, {class: 'form-control', data: {channel_partner_value: f.object.company.cp_sources.ids, referece_value: f.object.company.referal_sources.ids, is_broker_required: f.object.company.is_required_fields?("broker_id"), ref_name_required: f.object.company.is_required_fields?("referal_name"), ref_mob_required: f.object.company.is_required_fields?("referal_mobile")}}
+    .col-md-3#broker_select{:style => ("display:none;" unless f.object.company.cp_sources.ids.include?(f.object.source_id)), class: ("required" if @company.is_required_fields?("broker_id"))}
+      .form-group
+        = f.select :broker_id, options_from_collection_for_select(@company.brokers, :id, :name, f.object.broker_id), {include_blank: "Select Broker"}, class: "form-control"
+    .col-md-6#reference_detail{:style => ("display:none;" unless f.object.company.referal_sources.ids.include?(f.object.source_id))}
+      .row
+        .col-md-6{class: ("required" if @company.is_required_fields?("referal_name"))}
+          .form-group
+            = f.text_field :referal_name, class: "form-control", placeholder: "Referrer Name", label: 'Referrer Name'
+        .col-md-6{class: ("required" if @company.is_required_fields?("referal_mobile"))}
+          .form-group
+            = f.text_field :referal_mobile, class: "form-control", placeholder: "Referrer Mobile", label: 'Referrer Mobile'
+    - if @company.is_allowed_field?("sub_source")
+      .col-md-3{class: ("required" if @company.is_required_fields?("sub_source"))}
+        .form-group
+          = f.text_field :sub_source, class: "form-control", placeholder: "Sub Source", required: @company.is_required_fields?("sub_source")
+    - if @company.is_allowed_field?("enquiry_sub_source_id")
+      .col-md-3{class: ("required" if @company.is_required_fields?("enquiry_sub_source_id"))}
+        .form-group
+          = f.select :enquiry_sub_source_id, options_from_collection_for_select(@company.sub_sources, :id, :name, f.object.enquiry_sub_source_id), {include_blank: "Select Sub Source", label: 'Sub Source'}, class: "form-control", required: @company.is_required_fields?("enquiry_sub_source_id")
+    - if @company.is_allowed_field?("other_phones")
+      .col-md-3{class: ("required" if @company.is_required_fields?("other_phones"))}
+        .form-group
+          = f.text_field :other_phones, class: "form-control", placeholder: "Other Phone", required: @company.is_required_fields?("other_phones")
+    - if @company.is_allowed_field?("other_emails")
+      .col-md-3{class: ("required" if @company.is_required_fields?("other_emails"))}
+        .form-group
+          = f.text_field :other_emails, class: "form-control", placeholder: "Other Emails", required: @company.is_required_fields?("other_emails")
+    - unless @company.requirement?
+      - if @company.is_allowed_field?("budget")
+        .col-md-3{class: ("required" if @company.is_required_fields?("budget"))}
+          .form-group
+            = f.number_field :budget, data: {view_target: "text_budget_from"}, class: "form-control currency_input", placeholder: "Budget", required: @company.is_required_fields?("budget")
+    - if @company.is_allowed_field?("city_id")
+      .col-md-3{class: ("required" if @company.is_required_fields?("city_id"))}
+        .form-group
+          = f.select :city_id, options_from_collection_for_select(City.all, :id, :name, f.object.city_id), {include_blank: "Select City"}, class: 'form-control', required: @company.is_required_fields?("city_id")
+    - if @company.is_allowed_field?("locality_id")
+      .col-md-3{class: ("required" if @company.is_required_fields?("locality_id"))}
+        .form-group
+          = f.select :locality_id, options_from_collection_for_select(f.object.new_record? ? Locality.all : f.object.city_localities, :id, :name, f.object.locality_id), {include_blank: "Select Locality"}, class: 'form-control', required: @company.is_required_fields?("locality_id")
+    - if @company.is_allowed_field?("state")
+      .col-md-3{class: ("required" if @company.is_required_fields?("state"))}
+        .form-group
+          = f.text_field :state, class: "form-control", placeholder: "State", required: @company.is_required_fields?("state")
+    - if @company.is_allowed_field?("country")
+      .col-md-3{class: ("required" if @company.is_required_fields?("country"))}
+        .form-group
+          = f.text_field :country, class: "form-control", placeholder: "Country", required: @company.is_required_fields?("country")
+    - if @company.is_allowed_field?("lease_expiry_date")
+      .col-md-3{class: ("required" if @company.is_required_fields?("lease_expiry_date"))}
+        .form-group
+          = f.text_field :lease_expiry_date, class: "form-control dateFormat", placeholder: "Lease Expiry Date", required: @company.is_required_fields?("lease_expiry_date")
+    = render partial: 'custom_field', locals: {f: f, custom_fields: @company.magic_fields}
+    .form-group.col-md-12{:class=> ("required" if @company.is_required_fields?("comment"))}
+      %span.lead-title Comment
+      %span.lead-info
+        = f.object.comment&.gsub(/\n/, '<br/>')&.html_safe
+        = f.text_area :comment, class: "form-control", value: '', placeholder: "Comment", rows: "4",required: @company.is_required_fields?("comment"), hide_label: true
+  %div{align: "center"}
+    .col-md-12
+      .form-group
+        = button_tag type: "submit", class: "btn btn-primary", data: {disable_with: "Please Wait..."} do
+          = fa_icon "floppy-o"
+          Save
+        = link_to companies_path, class: "btn btn-danger" do
+          = fa_icon "close"
+          Cancel
+:javascript
+  $("#lead_status_id").change(function () {
+    if($(this).val()){
+      var stage_url = "/leads/" + $(this).val() + "/stages";
+      $("#lead_presale_stage_id").empty();
+      $.getJSON(stage_url, function(json){
+       $("#lead_presale_stage_id").append($('<option>').text("Select Stage").attr('value', ''));
+       $.each(json, function(i, obj){
+         $("#lead_presale_stage_id").append($('<option>').text(obj.name).attr('value', obj.id));
+       });
+      });
+    }
+    var site_visit = $('#lead_status_id').data('visit-planned-id')
+    var status_value = $(this).val()
+    var is_tentative_visit_required = $('#lead_status_id').data('is-tentative-visit-required')
+    if(status_value == site_visit.toString()) {
+      $('#tentative-visit-planned').show();
+      if(is_tentative_visit_required){
+        $('#lead_tentative_visit_planned').attr('required', true)
+      }else{
+        $('#lead_tentative_visit_planned').attr('required', false)
+      }
+    } else {
+      $('#lead_tentative_visit_planned').attr('required', false)
+      $('#tentative-visit-planned').hide();
+    }
+    var tokenStatusIds =$("#lead_status_id").data('token-status-id').filter(function(x){return x!==''});
+    tokenStatusLoad(tokenStatusIds);
+    var deadReasonIds = $("#lead_status_id").data('dead-status-id');
+    deadReasonLoad(deadReasonIds);
+    var bookedDoneId = $("#lead_status_id").data('booked-id');
+    if (bookedDoneId){
+      bookedFieldsLoad(bookedDoneId);
+    }
+    var hide_ncd = $('#lead_status_id').data('company-hide-ncd')
+    if (deadReasonIds.includes($(this).val().toString()) && hide_ncd.toString() == "true"){
+      $('#ncd_').hide();
+    }
+    else{
+      $('#ncd_').show();
+    }
+    var inactive_status = deadReasonIds;
+    if(bookedDoneId){
+      inactive_status.push(bookedDoneId.toString())
+    }
+    var inactive_ids = inactive_status.filter(function(x){return x!==''})
+    var ncd_require = $("#lead_ncd").data('ncd-required')
+    var ncd_non_mandatory = $('#lead_ncd').data('non-mandatory')
+    if (ncd_require){
+      if (ncd_non_mandatory && inactive_ids.includes($('#lead_status_id').val().toString())){
+        $('#lead_ncd').attr('required', false)
+        $('#ncd_').removeClass("required");
+      }else{
+        $('#lead_ncd').attr('required', true)
+        $('#ncd_').addClass("required");
+      }
+    }else{
+      $('#lead_ncd').attr('required', false)
+    }
+  });
+  var tokenStatusIds = $("#lead_status_id").data('token-status-id').filter(function(x){return x!==''});
+  tokenStatusLoad(tokenStatusIds);
+  function tokenStatusLoad(token_status_ids){
+    if (token_status_ids.includes($('#lead_status_id').val().toString())){
+      $('#token_status_fields').show();
+      $('#lead_token_date').attr('required', true)
+    }
+    else{
+      $('#lead_token_date').attr('required', false)
+      $('#token_status_fields').hide();
+    }
+  }
+  function bookedFieldsLoad(booking_done_id){
+    if (booking_done_id == $('#lead_status_id').val()){
+      if ($('#lead_status_id').data('enable-booked-fields')){
+        $('#lead_booking_date').attr('required', true)
+        $('#lead_booking_form').attr('required', true)
+      }else{
+        $('#lead_booking_date').attr('required', false);
+        $('#lead_booking_form').attr('required', false);
+      }
+      $('#booking-done-fields').show();
+    }else{
+      $('#booking-done-fields').hide();
+      $('#lead_booking_date').attr('required', false)
+      $('#lead_booking_form').attr('required', false)
+    }
+  }
+  var deadReasonIds = $("#lead_status_id").data('dead-status-id').filter(function(v){return v!==''});
+  deadReasonLoad(deadReasonIds);
+  function deadReasonLoad(dead_reason_ids){
+    if (dead_reason_ids.includes($('#lead_status_id').val().toString())){
+      $('#dead-reason').show();
+      $('#lead_dead_reason_id').attr('required', true)
+    }
+    else{
+      $('#lead_dead_reason_id').attr('required', false)
+      $('#dead-reason').hide();
+    }
+  }
+
+  $(".currency_input").on("keyup", function(e){
+    var x=$(this).val();
+    var to_fill_span = $("#"+$(this).data("viewTarget"));
+    to_fill_span.html(inWords(x));
+  });
+
+  $('.currency_input').bind('focusout', function() {
+    var x=$(this).val();
+    var to_fill_span = $("#"+$(this).data("viewTarget"));
+    to_fill_span.hide();
+  });
+
+  $('.currency_input').bind('focusin', function() {
+    var x=$(this).val();
+    var to_fill_span = $("#"+$(this).data("viewTarget"));
+    to_fill_span.show();
+  });
+  var referal_value = $('#lead_source_id').data('referece-value')
+  var source_id = $("#lead_source_id").val()
+  var is_ref = referal_value.includes(parseInt(source_id));
+  var ref_name_req = $('#lead_source_id').data('ref-name-required');
+  var ref_mob_req= $("#lead_source_id").data('ref-mob-required');
+  if (is_ref){
+    if (ref_mob_req){
+      $("#lead_referal_mobile").attr("required", true);
+    }else{
+      $("#lead_referal_mobile").attr("required", false);
+    }
+    if (ref_name_req){
+      $("#lead_referal_name").attr("required", true);
+    }else{
+      $("#lead_referal_name").attr("required", false);
+    }
+  }else{
+    $("#lead_referal_mobile").attr("required", false);
+    $("#lead_referal_name").attr("required", false);
+  }
+  $("#lead_source_id").change(function () {
+    var channel_value = $(this).data('channel-partner-value')
+    var is_broker_required = $(this).data('is-broker-required')
+    var source_id = $(this).val()
+    var is_cp = channel_value.includes(parseInt(source_id));
+    var referal_value = $(this).data('referece-value')
+    var is_ref = referal_value.includes(parseInt(source_id));
+    if(is_cp) {
+      $('#broker_select').show();
+      if(is_broker_required){
+        $("#lead_broker_id").attr("required", true);
+      }else{
+        $("#lead_broker_id").attr("required", false);
+      }
+    } else {
+      $("#lead_broker_id").attr("required", false);
+      $('#broker_select').hide();
+    }
+    if (is_ref) {
+      $('#reference_detail').show();
+      if (ref_mob_req){
+        $("#lead_referal_mobile").attr("required", true);
+      }else{
+        $("#lead_referal_mobile").attr("required", false);
+      }
+      if (ref_name_req){
+        $("#lead_referal_name").attr("required", true);
+      }else{
+        $("#lead_referal_name").attr("required", false);
+      }
+    }else{
+      $('#reference_detail').hide();
+      $("#lead_referal_name").attr("required", false);
+      $("#lead_referal_mobile").attr("required", false);
+    }
+  });
+
+  $("#lead_city_id").change(function () {
+    if($(this).val()){
+      var city_id = $(this).val()
+      var fetch_locality = "/leads/" + city_id + "/localities";
+      $("#lead_locality_id").empty();
+      $.getJSON(fetch_locality, function(json){
+        $("#lead_locality_id").append($('<option>').text("Select Locality").attr('value', ''));
+        $.each(json, function(i, obj){
+          $("#lead_locality_id").append($('<option>').text(obj.name).attr('value', obj.id));
+        });
+      });
+    }
+  });

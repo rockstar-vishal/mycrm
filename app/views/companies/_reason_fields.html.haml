@@ -1,0 +1,6 @@
+.nested-fields.col-md-4{:style => "border: 1px dashed #999; border-radius: 5px; padding: 20px;"}
+  .form-group.required
+    = f.text_field :reason, :value=>f.object.reason, :class=>"form-control"
+    = f.check_box :active
+  %center
+    = link_to_remove_association "Remove", f, :class=>"btn btn-danger"

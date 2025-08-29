@@ -1,0 +1,33 @@
+%ul.nav.nav-tabs.small-tabs{:role => "tablist"}
+  %li.nav-item
+    %a#bldga-tab.d-flex.align-items-center.btn-outline-white.rounded{"aria-controls" => "bldga", "aria-selected" => "true", "data-toggle" => "pill", :href => "#bldga", :role => "tab"}
+      %span.badge.badge-primary.mr-1 #{@flats.present? ? @flats.count : 0}
+      All
+.flat-content
+  #bldga.tab-pane.fade.active.show{"aria-labelledby" => "bldga-tab", :role => "tabpanel"}
+    - if @flats.present?
+      .row
+        .col-md-12
+          - @floors.each do |f|
+            - this_flat_data = @flats.select{|k| k["floor"] == f}
+            .card.elevation-3
+              .card-header.p-3
+                %h3.card-title
+                  Floor #{f}
+              .card-body.p-2
+                - this_flat_data.each do |flat|
+                  .flat-grid-holder
+                    - if flat["status_id"] == 1
+                      .flat-available.flat-grid
+                        %p.inner-text
+                          Flat no :
+                          %strong
+                            = flat["name"]
+                      = link_to flat_block_modal_companies_flat_path(flat), remote: true, class: "icon-flat"  do
+                        =image_tag 'flat-block.svg', class: "img-fluid"
+                    - else
+                      .flat-blocked.flat-grid
+                        %p.inner-text
+                          Flat no :
+                          %strong
+                            = flat["name"]

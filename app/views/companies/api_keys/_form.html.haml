@@ -1,0 +1,30 @@
+= bootstrap_form_for @key, url: (@key.new_record? ? companies_api_keys_path : companies_api_key_path(@key.uuid)),remote: true do |f|
+  - if @key.errors.any?
+    #error_explanation
+      %h2
+        = pluralize(@key.errors.count, "error")
+        prohibited this from being saved:
+      %ul
+        - @key.errors.full_messages.each do |message|
+          %li= message
+  .row
+    .col-md-3.required
+      .form-group
+        = f.select :source_id, options_from_collection_for_select(current_user.company.sources, :id, :name, f.object.source_id), prompt: "Lead Source", class: "form-control multi-select-list", multiple: true
+  .row
+    .col-md-3.required
+      .form-group
+        = f.select :user_id, options_from_collection_for_select(current_user.manageables, :id, :name, f.object.user_id), {prompt: "Please Select", label: "Select User"}, class: 'form-control'
+  .row
+    .col-md-3.required
+      .form-group
+        = f.select :project_id, options_from_collection_for_select(current_user.company.projects, :id, :name, f.object.project_id), {prompt: "Please Select", label: "Select Project"}, class: 'form-control'
+    .col-md-12
+      .form-group
+        = button_tag type: "submit", class: "btn btn-primary", data: {disable_with: "Please Wait..."} do
+          = fa_icon "floppy-o"
+          Save
+        = link_to companies_api_keys_path, class: "btn btn-danger" do
+          = fa_icon "close"
+          Cancel
+

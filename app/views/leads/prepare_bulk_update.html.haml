@@ -1,0 +1,33 @@
+.content-wrapper
+  .content-header
+    .container-fluid
+      .row.mb-2
+        .col-sm-12
+          %ol.breadcrumb
+            %li.breadcrumb-item
+              %a{:href => "/"} Home
+            %li.breadcrumb-item.active Prepare Bulk Update
+        .col-sm-12
+          %h1.m-0.text-dark Leads
+  .content
+    .container-fluid
+      .row
+        .col-lg-12
+          .card
+            .card-header
+              %h3 Update Leads
+            .card-body
+              = form_tag import_bulk_update_leads_path, method: :put, multipart: true, class: '' do
+                .row
+                  .col-md-6
+                    .form-group.mb-3.p-0
+                      .input-group
+                        .custom-file
+                          = file_field_tag :leads_file, accept: 'text/csv', :class=>"custom-file-input", :required=>true
+                          %label.custom-file-label{:for => "inputGroupFile04"} Choose file
+                        .input-group-append
+                          = button_tag type: "submit", class: 'btn btn-warning btn-sm', data: { disable_with: 'Please wait...' } do
+                            = fa_icon "upload"
+                            Upload
+                      .form-group.col-md-12.mt-3.mb-4.p-0
+                        = link_to "Sample CSV", "/bulk_update_sample.csv", :class=>"btn btn-primary btn-sm mt-2"

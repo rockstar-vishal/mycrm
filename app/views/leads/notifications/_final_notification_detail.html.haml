@@ -1,0 +1,18 @@
+.row
+  .col-md-12
+    .col-md-12
+      %p
+        %strong
+          = "#{@lead.name}"
+        - if current_user.is_telecaller?
+          = "Will Receive Below Text"
+        - else
+          = "Will Receive Below Text on #{@lead.mobile}"
+  .col-md-12
+    .col-md-12
+      .box-size
+        = "#{@notification.body}"
+.row{style: "margin-top: 20px;"}
+  .col-md-12
+    %center
+      = link_to 'Send Notification', shoot_notification_leads_notifications_path(@lead, @notification), method: :post, remote: true, class: 'btn btn-primary  btn-flatbtn', data: { disable_with: 'Please wait...', confirm: 'Are You Sure' }

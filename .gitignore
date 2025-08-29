@@ -1,0 +1,24 @@
+/tmp
+/log
+/db/backups
+/.idea
+/.DS_store
+Gemfile.lock
+dump.rdb
+# Ignore public assets in production
+public/assets/
+/coverage
+# Ignore application configuration
+/config/application.yml
+/config/database.yml
+/config/newrelic.yml
+/config/secrets.yml
+/config/.secrets.yml.swp
+/config/mongo.yml
+dump.rdb
+**/.DS_Store
+.byebug_history
+node_modules
+npm-debug.log
+db/schema.rb
+public/system

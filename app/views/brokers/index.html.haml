@@ -1,0 +1,60 @@
+.content-wrapper
+  .content-header
+    .container-fluid
+      .row.mb-2
+        .col-md-9
+          %ol.breadcrumb
+            %li.breadcrumb-item
+              %a{:href => "/"} Home
+            %li.breadcrumb-item.active Brokers
+          %h1.m-0.text-dark Brokers
+  .content
+    .container-fluid
+      .row
+        .col-lg-12
+          .card
+            .card-header
+              .pull-left.col-md-5
+                = form_tag brokers_path, method: :get do
+                  .input-group.input-group-sm
+                    = text_field_tag :search_query, params[:search_query], class: "form-control", placeholder: "Search by name/firm name/contact no/rera Number"
+                    .input-group-btn
+                      = button_tag type: "submit", class: "btn btn-default btn-sm pd-fixes" do
+                        = fa_icon "search"
+                      = link_to brokers_path, class: "btn btn-default btn-sm pd-fixes" do
+                        = fa_icon "refresh"
+              .float-right
+                .input-group
+                  .input-group-btn
+                    = link_to 'Add New Broker', new_broker_path, remote: true, class: 'btn btn-primary float-right btn-sm'
+            .card-body
+              .table-responsive
+                %table.table.table-bordered.table-hover.dataTables.table-sm.responsive.nowrap{style: 'width:100%!important'}
+                  %thead
+                    %tr
+                      %th.all Name
+                      %th.all Email
+                      - unless current_user.is_telecaller?
+                        %th.all Mobile
+                      %th.all Rera Number
+                      %th.all Firm Name
+                      %th.all Locality
+                      %th.all RM
+                      %th Action
+
+                  %tbody
+                    - @brokers.each do |broker|
+                      %tr
+                        %td= broker.name
+                        %td= broker.email
+                        - unless current_user.is_telecaller?
+                          %td= broker.mobile
+                        %td= broker.rera_number
+                        %td= broker.firm_name
+                        %td= broker.locality
+                        %td= broker.rm.name rescue nil
+                        %td
+                          = link_to (fa_icon "pencil"), edit_broker_path(broker.uuid), remote: true, class: "btn btn-primary btn-sm"
+          .pagination-custom-holder
+            %strong{style: "margin-left: 0;"} Brokers Count - #{@brokers.count}
+            = will_paginate @brokers, :class  =>  "ct-pag"

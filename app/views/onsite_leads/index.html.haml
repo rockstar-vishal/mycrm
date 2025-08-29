@@ -1,0 +1,64 @@
+.content-wrapper
+  .content-header
+    .container-fluid
+      .row.mb-2
+        .col-md-9
+          %ol.breadcrumb
+            %li.breadcrumb-item
+              %a{:href => "/"} Home
+            %li.breadcrumb-item.active Leads
+          %h1.m-0.text-dark Leads
+  .content
+  .container-fluid
+    .row
+      .col-lg-12
+        .card
+          .card-header
+            .box-header.row
+              .col-md-5
+                = form_tag onsite_leads_path, method: :get do
+                  .input-group.input-group-sm
+                    = text_field_tag :search_query, params[:search_query], class: "form-control", placeholder: "Search by name, email or phone"
+                    .input-group-btn
+                      = button_tag type: "submit", class: "btn btn-default btn-sm pd-fixes" do
+                        = fa_icon "search"
+                      = link_to onsite_leads_path, class: "btn btn-default btn-sm pd-fixes" do
+                        = fa_icon "refresh"
+          .card-body
+            = form_tag bulk_action_leads_path, method: :put, class: 'form-inline' do
+              - company_index_fields = current_user.company.index_fields
+              - if current_user.is_super?
+                = render 'bulk_action'
+              .table-responsive
+                %table.table.table-bordered.table-condensed.table-striped.tablesorter
+                  %thead
+                    %tr
+                      %th.all Name
+                      %th.all Lead No
+                      %th.all Project
+                      %th.all Status
+                      %th.all Assigned To
+                      %th Action
+                  %tbody
+                    - @leads.each do |lead|
+                      %tr
+                        %td= lead.name
+                        %td= lead.lead_no
+                        %td= lead.project_name
+                        %td= lead.status.name
+                        %td= lead.user&.name
+                        %td
+                          - if current_user.id == lead.user_id
+                            = link_to edit_onsite_lead_path(lead), remote: true, class: "btn btn-primary m-r-5", style: "padding: 4px 8px; width: auto; border-radius: 50%!important;" do
+                              = fa_icon "pencil"
+                          - else
+                            = link_to '#', remote: true, class: "btn btn-primary m-r-5 disabled", style: "padding: 4px 8px; width: auto; border-radius: 50%!important;" do
+                              = fa_icon "pencil"
+              - if @leads.present?
+                %br
+                  %strong{style: "margin-left: 11px;"} Lead Count - #{@leads_count}
+                  = will_paginate @leads, :class  =>  "ct-pag"
+:css
+  th a {
+    color:#fff;
+  }

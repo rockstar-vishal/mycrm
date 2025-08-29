@@ -1,0 +1,26 @@
+= bootstrap_form_for @stage, url: (@stage.new_record? ? stages_path : stage_path(@stage.uuid)),remote: true do |f|
+  - if @stage.errors.any?
+    #error_explanation
+      %h2
+        = pluralize(@stage.errors.count, "error")
+        prohibited this Stage from being saved:
+      %ul
+        - @stage.errors.full_messages.each do |message|
+          %li= message
+  .row
+    .col-md-5.required
+      .form-group
+        = f.text_field :name, class: "form-control", placeholder: "Stage"
+    .col-md-4
+      .form-group
+        = f.select :is_active, [["Active", true], ["Inactive", false]],
+          {include_blank: "Status"}, class: 'form-control'
+  %div{align: "center"}
+    .col-md-12
+      .form-group
+        = button_tag type: "submit", class: "btn btn-primary", data: {disable_with: "Please Wait..."} do
+          = fa_icon "floppy-o"
+          Save
+        = link_to stages_path, class: "btn btn-danger" do
+          = fa_icon "close"
+          Cancel

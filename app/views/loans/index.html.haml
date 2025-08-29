@@ -1,0 +1,116 @@
+.content-wrapper
+  .content-header
+    .container-fluid
+      .row.mb-2
+        .col-md-2
+          %ol.breadcrumb
+            %li.breadcrumb-item
+              %a{:href => "/"} Home
+            %li.breadcrumb-item.active Loans
+          %h1.m-0.text-dark Home Loans
+        - if params[:is_advanced_search].blank? && params[:search_query].blank?
+          = render "index_buckets_loan", locals: {:@company => @company, :@loans => @loans}
+  .content
+  .container-fluid
+    .row
+      .col-lg-12
+        .card
+          .card-header
+            .box-header.row
+              .pull-left.col-md-4.d-none.d-sm-block
+                - if current_user.is_super? || current_user.can_import? || (current_user.is_executive? && @company.setting.present? && @company.enable_executive_export_leads)
+                  = link_to params.except(:action, :controller).merge!(format: :csv), class: "btn btn-primary btn-sm", style: "right: 5px;" do
+                    = fa_icon "download"
+                    Export
+              .pull-left.col-md-5
+                = form_tag loans_path, method: :get do
+                  .input-group.input-group-sm
+                    = text_field_tag :search_query, params[:search_query], class: "form-control", placeholder: "Search by name, enquiry no, email or phone"
+                    .input-group-btn
+                      = button_tag type: "submit", class: "btn btn-default btn-sm pd-fixes" do
+                        = fa_icon "search"
+                      = link_to loans_path, class: "btn btn-default btn-sm pd-fixes" do
+                        = fa_icon "refresh"
+                      %a#adv-search{:href => "javascript:void(0);", :style => "margin-left:5px;", :class=>"btn btn-primary btn-sm"}
+                        Advanced Search
+                        %i.fa.fa-angle-down
+            = render partial: "loan_advance_search_form"
+          .card-body
+            = form_tag nil, method: :put do
+              .table-responsive
+                %table.table.table-bordered.table-condensed.table-striped.tablesorter
+                  %thead
+                    %tr
+                      %th{"data-sorter"=> "false", style: "width:3%;"}
+                        = check_box_tag 'checkbox', nil, false, class: 'select-all bulk-select'
+                      %th Client Name
+                      %th Mobile
+                      %th Assigned To
+                      %th Status
+                      %th.sorter-false
+                        - if params["sort"].present? and params["sort"] == "desc"
+                          = link_to params.merge(key: "ncd", sort: "asc"), class: "lead-collapse", "aria-controls" => "collapseOne", role: "button" do
+                            Next Call Date
+                        - else
+                          = link_to params.merge(key: "ncd", sort: "desc"), class: "lead-collapse", "aria-controls" => "collapseOne", role: "button" do
+                            Next Call Date
+                      %th Comment
+                      %th Created At
+                      %th Action
+                  %tbody
+                    - if @loans.present?
+                      - @loans.each do |loan|
+                        - lead = loan.lead
+                        %tr
+                          %td
+                            = check_box_tag 'loan_ids[]', loan.id, false, class: 'bulk-select'
+                          %td
+                            - lead_name = (lead.present? && lead.name.present?) ? lead.name : '--'
+                            - if lead.present?
+                              = link_to lead_name, lead_path(lead), remote: true
+                            - else
+                              = lead_name
+                          %td
+                            = lead.mobile rescue "--"
+                          %td= loan.user.name rescue nil
+                          %td= loan.status.name rescue nil
+                              
+                          %td= loan.ncd.strftime("%d-%m-%y %H:%M %p") rescue nil
+                          %td.showmore= loan.comment.strip.gsub(/\n/, '<br/>').html_safe rescue ""
+                          %td= loan.created_at.strftime("%d-%m-%y %H:%M %p")
+                          %td
+                            = link_to edit_loan_path(loan), remote: true, class: "btn btn-primary m-r-5", style: "padding: 4px 8px; width: auto; border-radius: 50%!important;" do
+                              = fa_icon "pencil"
+              - if @loans.present?
+                %br
+                  %strong{style: "margin-left: 11px;"} Lead Count - #{@loans_count}
+                  = will_paginate @loans, :class  =>  "ct-pag"
+:css
+  th a {
+    color:#fff;
+  }
+
+
+:javascript
+  $(document).ready(function(){
+    getLoansCounts();
+  });
+
+  function getLoansCounts(){
+    console.log("function Called");
+    $.ajax({
+      type: "GET",
+      url: '/loans/loan_counts',
+      dataType: 'json',
+      success:function(response){
+        if(response.status == 200){
+          $(".today_calls_leads_counts").append(response.today_calls_count)
+          $(".backlog_lead_counts").append(response.backlog_leads_count)
+          $("#hot_lead_counts").append(response.hot_status_count);
+          $("#new_lead_counts").append(response.new_status_count);
+          $("#booked_counts").append(response.booking_done_count);
+          $("#dead_lead_counts").append(response.dead_lead_count);
+        }
+      }
+    });
+  }

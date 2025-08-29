@@ -1,0 +1,27 @@
+.nested-fields.col-md-4{:style => "border: 1px dashed #999; border-radius: 5px; padding: 20px;"}
+  .form-group.required
+    = f.text_field :name,  :class=>"form-control"
+    = f.text_field :pretty_name, class: "form-control"
+    = f.select :datatype, options_for_select(MagicField.datatypes, f.object.datatype), {include_blank: "Select DataType"}, class: 'form-control'
+    = f.select :is_required, options_for_select([["Yes", true], ["No", false]], f.object.is_required), required: true
+    = f.check_box :is_indexed_field
+    = f.check_box :is_popup_field
+    = f.check_box :is_select_list, class: 'custom-checkbox'
+    .item-list{:style => ("display:none;" unless f.object.is_select_list?)}
+      = f.text_field :items, value: f.object.items.join(',') || ''
+    = f.check_box :fb_form_field, class: 'custom-checkbox', label: 'Enable Form Field'
+    .item-list{:style => ("display:none;" unless f.object.fb_form_field?)}
+      = f.text_field :fb_field_name, class: 'form-control', label: 'Fb Field Name'
+    = f.hidden_field :type_scoped, value: 'Lead'
+
+  %center
+    = link_to_remove_association "Remove", f, :class=>"btn btn-danger"
+:javascript
+  $(".custom-checkbox").change(function () {
+    var isChecked = $(this).closest('[type=checkbox]').is(':checked')
+    if(isChecked) {
+      $(this).parent().parent().next().first().show();
+    } else {
+      $(this).parent().parent().next().first().hide();
+    }
+  });

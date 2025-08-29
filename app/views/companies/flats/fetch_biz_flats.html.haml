@@ -1,0 +1,85 @@
+.content-wrapper
+  .content-header
+    .container-fluid
+      .row.mb-2
+        .col-sm-12
+          %ol.breadcrumb.small
+            %li.breadcrumb-item
+              %a{:href => "#"} Home
+            %li.breadcrumb-item.active Project Details
+  .content
+    .container-fluid
+      .row
+        .col-lg-12
+          .card
+            .card-header
+              = image_tag  "logo.jpg", class: '', :style => "left: 12px"
+            .card-body
+              %ul.nav.nav-tabs.title-tab{:role => "tablist"}
+                %li.nav-item
+                  %a#manageFlats-tab.btn-outline-white.rounded-top{"aria-controls" => "manageFlats", "aria-selected" => "true", "data-toggle" => "pill", :href => "#manageFlats", :role => "tab"} Manage Flats
+              .form-group
+                = form_tag nil, method: :get, class: "filter-search-menu" do
+                  .row
+                    .col-md-7
+                      .holderBuilder
+                        .row
+                          .col-md-6
+                            %label Select Project
+                            = select_tag :project_ids, options_for_select([]), class: "form-control select2", style: "width:100%"
+                          .col-md-6
+                            %label Select Building
+                            = select_tag :building_id, options_for_select([], params[:building_id]), class: "form-control select2 building_id", style: "width:100%"
+                .row.mt-4
+                  .col-12
+                    #flat_details
+
+:javascript
+  $('.dropdown-menu.flats').click(function(e) {
+    e.stopPropagation();
+    if ($(e.target).is('[data-toggle=modal]')) {
+      $($(e.target).data('target')).modal()
+      console.log($(e.target).attr('data-id'))
+    }
+  });
+  $(document).ready(function(){
+    loadProjects();
+  })
+  function loadProjects(){
+    var fetch_project = "/companies/flats/fetch_projects";
+    $.getJSON(fetch_project, function(json){
+      $("#project_ids").append($('<option>').text("Select").attr('value', ''));
+      $.each(json, function(i, obj){
+        $("#project_ids").append($('<option>').text(obj.name).attr('value', obj.id));
+      });
+    });
+  }
+  $("#project_ids").change(function(){
+    if($(this).val()){
+      var project_id = $(this).val()
+      var fetch_buildings = "/companies/flats/" + project_id + "/fetch_buildings";
+      $.getJSON(fetch_buildings, function(json){
+        $(".building_id").empty();
+        $(".building_id").append($('<option>').text("Select").attr('value', ''));
+        $.each(json, function(i, obj){
+          $(".building_id").append($('<option>').text(obj.name).attr('value', obj.id));
+        });
+      });
+    }
+  });
+  $(".building_id").change(function(e){
+    e.preventDefault()
+    var building_id = $(this).val();
+    if (building_id){
+      getFlatsDetail(building_id);
+    }
+  });
+  function getFlatsDetail(building_id) {
+    var url = '/companies/flats/'+building_id+'/fetch_building_flats'
+    $.ajax({
+      type: 'GET',
+      url: url,
+      dataType: 'script'
+    });
+  }
+

@@ -1,0 +1,5 @@
+.nested-fields.col-md-4{:style => "border: 1px dashed #999; border-radius: 5px; padding: 20px;"}
+  .form-group
+    = f.select :manager_id, options_from_collection_for_select(@users, :id, :name, (f.object.manager_id rescue nil)), :prompt=>'Select Manager', class: 'form-control', id: 'manager_id'
+  %center
+    = link_to_remove_association "Remove", f, :class=>"btn btn-danger"

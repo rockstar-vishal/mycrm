@@ -1,0 +1,30 @@
+.col-md-6
+  .form-group
+    %label Residential Type
+    .row
+      %label.col-6
+        = f.radio_button :property_type, Lead::PROPERTY_TYPES[0], label: 'Residential'
+      %label.col-6
+        = f.radio_button :property_type, Lead::PROPERTY_TYPES[1], label: 'Commercial'
+#commercial_fields.row{:style => ("display:none;" unless f.object.property_type=="Commercial")}
+  = f.fields_for :commercial_type, f.object.commercial_type || f.object.build_commercial_type do |com|
+    = render "commercial_type", {:f => com, :form => f}
+#residential_fields.row{:style => ("display:none;" unless f.object.property_type=="Residential")}
+  = f.fields_for :residential_type, f.object.residential_type || f.object.build_residential_type do |res|
+    = render "residential_type", {:f => res}
+.col-md-3
+  - if @company.is_allowed_field?("budget")
+    = f.number_field :budget, data: {view_target: "text_budget_from"}, class: "form-control currency_input", placeholder: "Budget"
+:javascript
+  $("input[id^='lead_property_type']").change(function(){
+    var val = $(this).val();
+    if(val === "Residential")
+    {
+      $("#residential_fields").show();
+      $("#commercial_fields").hide();
+    }
+    else{
+      $("#residential_fields").hide();
+      $("#commercial_fields").show();
+    }
+  });

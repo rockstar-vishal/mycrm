@@ -1,0 +1,21 @@
+%center
+  .panel.panel-primary{style: "margin-top: 147px;"}
+    .panel-footer
+      %strong
+        Failures (#{@errors.count}):
+      %br/
+      %ul
+        - @errors.each do |error|
+          %li
+            %strong{:style => "color: #f00"}
+              = "#{error[:lead_name]}" " - " "#{error[:message]}"
+      %br/
+      %br/
+      %strong
+        Successful (#{@success.count}):
+      %br/
+      %ul
+        - @success.each do |success|
+          %li
+            %strong{:style => "color: #008a1a"}
+              = "#{success[:lead_name]}"

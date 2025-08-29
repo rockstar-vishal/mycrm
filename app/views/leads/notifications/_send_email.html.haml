@@ -1,0 +1,33 @@
+.modal-header
+  %h5.modal-title Send Email
+  %button.close{"aria-label" => "Close", "data-dismiss" => "modal", :type => "button"}
+    %span{"aria-hidden" => "true"} ×
+.modal-body
+  = bootstrap_form_for(@email, url: shoot_email_leads_notifications_path(@lead), method: :post, remote: true) do |f|
+    - if @email.errors.any?
+      #error_explanation
+        %h2
+          = pluralize(@email.errors.count, "error")
+          prohibited this Email from being Send:
+        %ul
+          - @email.errors.full_messages.each do |message|
+            %li= message
+    .row
+      .col-md-6.required
+        .form-group
+          = f.text_field :subject, class: "form-control", placeholder: "Subject"
+      .col-md-6
+        .form-group
+          = f.text_field :cc_email, value: f.object.cc_email.join(','), class: "form-control", multiple: true, placeholder: "CC Emails", label: 'Cc Emails'
+      .col-md-12
+        .form-group
+          = f.text_area :body, class: "form-control", placeholder: "Message", label: "Message"
+    %div{align: "center"}
+      .col-md-12
+        .form-group
+          = button_tag type: "submit", class: "btn btn-primary", data: {disable_with: "Please Wait..."} do
+            = fa_icon "floppy-o"
+            Save
+          = link_to leads_path, class: "btn btn-danger" do
+            = fa_icon "close"
+            Cancel

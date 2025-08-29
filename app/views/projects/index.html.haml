@@ -1,0 +1,62 @@
+.content-wrapper
+  .content-header
+    .container-fluid
+      .row.mb-2
+        .col-md-9
+          %ol.breadcrumb
+            %li.breadcrumb-item
+              %a{:href => "/"} Home
+            %li.breadcrumb-item.active Projects
+          %h1.m-0.text-dark Projects
+  .content
+    .container-fluid
+      .row
+        .col-lg-12
+          .card
+            .card-header
+              .row
+                .col-md-4
+                  %h4.mb-0 Projects
+                .col-md-4
+                  = form_tag projects_path, method: :get do
+                    .input-group.input-group-sm
+                      = text_field_tag :search_string, params[:search_string], class: "form-control", placeholder: "Search by Project name, City"
+                      .input-group-btn
+                        = button_tag type: "submit", class: "btn btn-default btn-sm pd-fixes" do
+                          = fa_icon "search"
+                        = link_to projects_path, class: "btn btn-default btn-sm pd-fixes" do
+                          = fa_icon "refresh"
+                .col-md-2.offset-md-2.pull-right
+                  = link_to 'Add New Project', new_project_path, remote: true, class: 'btn btn-primary float-right btn-sm'
+            .card-body
+              .table-responsive
+                %table.table.table-bordered.table-hover.dataTables.table-sm.responsive.nowrap{style: 'width:100%!important'}
+                  %thead
+                    %tr
+                      %th.all Project
+                      %th.all City
+                      %th.all UUID
+                      %th.all Cross Pitch?
+                      %th.all Active
+                      %th.all Action
+                  %tbody
+                    - @projects.includes{city}.each do |project|
+                      %tr
+                        %td= project.name
+                        %td= project.city.name rescue nil
+                        %th
+                          %span{id: "actualLink-#{project.uuid}"}
+                            = project.uuid
+                          %button.clipboard-btn.btn.btn-primary{"data-clipboard-text"=>project.uuid}
+                            = fa_icon "copy"
+                        %td= project.cross_pitch ? "Yes" : "No"
+                        %td= project.active ? "Yes" : "No"
+                        %td
+                          = link_to (fa_icon "pencil"), edit_project_path(project.uuid), remote: true, class: "btn btn-primary btn-sm"
+                          |
+                          - if current_user.is_super?
+                            = link_to project_path(project.uuid), class: "btn btn-danger", method: :delete, data: {:confirm => "Would you like to permanently delete this Project?", "commit-class" => "btn btn-success", "cancel-class" => "btn btn-danger"}, style: "padding: 0px; width: 20px;" do
+                              = fa_icon "trash-o"
+          .pagination-custom-holder
+            %strong{style: "margin-left: 0;"} Projects Count - #{@projects.count}
+            = will_paginate @projects, :class  =>  "ct-pag"

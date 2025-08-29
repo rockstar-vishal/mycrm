@@ -1,0 +1,55 @@
+.content-wrapper
+  .content-header
+    .container-fluid
+      .row.mb-2
+        .col-md-9
+          %ol.breadcrumb
+            %li.breadcrumb-item
+              %a{:href => "/"} Home
+            %li.breadcrumb-item.active Call Ins
+          %h1.m-0.text-dark Call Ins
+  .content
+    .container-fluid
+      .row
+        .col-lg-12
+          .card
+            .card-header
+              - if current_user.is_sysad?
+                .float-right
+                  .input-group
+                    .input-group-btn
+                      = link_to 'Add New Number', new_call_in_path, remote: true, class: 'btn btn-primary float-right btn-sm'
+              %h3.mb-0 Call Ins
+                
+            .card-body
+              .table-responsive
+                %table.table.table-bordered.table-hover.dataTables.table-sm.responsive.nowrap{style: 'width:100%!important'}
+                  %thead
+                    %tr
+                      %th.all Number
+                      - unless current_user.is_sysad?
+                        %th.desktop Project
+                        %th.desktop User
+                        %th.desktop Source
+                      %th.all Active
+                      %th.all Action
+                  %tbody
+                    - @call_ins.each do |call_in|
+                      %tr
+                        %td
+                          = call_in.number
+                        - unless current_user.is_sysad?
+                          %td
+                            = call_in.project.name rescue '-'
+                          %td
+                            = call_in.user.name rescue '-'
+                          %td
+                            = call_in.source_name rescue '-'
+                        %td
+                          = call_in.active ? "Yes" : "No"
+                        %td
+                          = link_to (fa_icon "pencil"), edit_call_in_path(call_in.uuid), remote: true, class: "btn btn-primary btn-sm"
+          - if @call_ins.present?
+            .pagination-custom-holder
+              %strong{style: "margin-left: 0;"} Call Ins Count - #{@call_ins.count}
+              = will_paginate @call_ins, :class  =>  "ct-pag"

@@ -1,0 +1,46 @@
+%div{style: "display: none; margin-left: 11px;", class: "bulk-process"}
+  .row
+    .col-12
+      %ul.nav.nav-tabs.nav-pills
+        %li.nav-link.sendemail
+          %a.nav-item.active(data-toggle="tab" href="#bulk_update") Bulk Update
+        %li.nav-link.sendemail
+          %a.nav-item(data-toggle="tab" href="#send_email") Send Email
+      .tab-content
+        #bulk_update.tab-pane.fade.show.active
+          .box-body-2
+          .row
+            .col-12
+              %h4.text-left.mb-4
+                %strong.d-block Bulk Update
+            .col-md-3
+              %strong.d-block.mb-1 Assigned To
+              = select_tag :assigned_to, options_from_collection_for_select((current_user.is_executive? ? (current_user.company.setting.present? && current_user.company.enable_executive_to_assign_users ? current_user.company.users : current_user.manageables) :  current_user.manageables), :id, :name, params[:assigned_to]), prompt: "Select User", class: "form-control custom-select"
+            .col-md-3
+              %strong.d-block.mb-1 Next Call Date
+              = text_field_tag :ncd, params[:ncd],
+                class: "form-control datetimepicker", placeholder: "Next Call Date"
+            .col-md-3
+              %strong.d-block.mb-1 Lead Status
+              = select_tag :lead_status, options_from_collection_for_select(current_user.company.statuses, :id, :name, params[:lead_status]), prompt: "Lead Status", class: "form-control"
+            .col-md-3
+              %strong.d-block.mb-1 Project
+              = select_tag :project_id, options_from_collection_for_select(current_user.company.projects, :id, :name, params[:lead_status]), prompt: "Project", class: "form-control"
+            .col-md-3
+              %strong.d-block.mb-1 Should Recycle?
+              = check_box_tag :should_recycle, "true"
+            .col-md-9.mt-3.mb-4
+              = button_tag type: "submit", data: { confirm: 'Are you sure?' }, class: 'btn btn-primary ' do
+                Submit
+              - if false && current_user.click_to_call_enabled? && current_user.agent_id.present?
+                = button_tag fa_icon('phone'), value: 'bulk_call', data: {confirm: 'Are you sure'}, class: 'btn btn-circle btn-primary'
+              / - if params[:search_query].present? || params[:is_advanced_search].present?
+              /   %strong{style: "margin-left: 11px;"} Lead Count - #{@leads.count}
+        #send_email.tab-pane.fade
+          .box-body-2
+          .row
+            .col-12
+              %h4.text-left.mb-4
+                %strong Send Email
+
+          = render partial: "share_on_email"

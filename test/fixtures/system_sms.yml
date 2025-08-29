@@ -1,0 +1,19 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  company_id: 1
+  user_id: 1
+  messageable_id: 1
+  messageable_type: MyString
+  text: MyText
+  response: MyString
+  sent: false
+
+two:
+  company_id: 1
+  user_id: 1
+  messageable_id: 1
+  messageable_type: MyString
+  text: MyText
+  response: MyString
+  sent: false

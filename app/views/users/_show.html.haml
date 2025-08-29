@@ -1,0 +1,44 @@
+.modal-header
+  %h5.modal-title Preview User
+  %button.close{"aria-label" => "Close", "data-dismiss" => "modal", :type => "button"}
+    %span{"aria-hidden" => "true"} ×
+.modal-body
+  %h4.lead-heading.mt-2.mb-2 User Basic Detail
+  .row
+    .col-md-6
+      .form-group
+        %span.lead-title Name
+        %span.lead-info
+          = @user.name
+    .col-md-6
+      .form-group
+        %span.lead-title Email
+        %span.lead-info
+          = mail_to @user.email
+      .w-100
+    .col-md-6
+      .form-group.col
+        %span.lead-title Contact No
+        %span.lead-info
+          = @user.mobile
+    .col-md-6
+      .form-group
+        %span.lead-title Role
+        %span.lead-info
+          = @user.role.name
+    .col-md-6
+      .form-group
+        %span.lead-title City
+        %span.lead-info
+          = @user.city&.name
+    .col-md-6
+      .form-group
+        %span.lead-title State
+        %span.lead-info
+          = @user.state
+    .col-md-6
+      .form-group
+        %span.lead-title Country
+        %span.lead-info
+          = @user.country
+      

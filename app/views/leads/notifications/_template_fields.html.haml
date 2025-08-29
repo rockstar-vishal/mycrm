@@ -1,0 +1,26 @@
+= form_for @notification, url: update_template_detail_leads_notifications_path(@template, @lead), method: :post, remote: true do |f|
+  .row
+    .col-md-12
+      .col-md-12
+        = f.label :body, 'Template Body'
+  .row
+    .col-md-12
+      .col-md-12
+        = f.text_area :body, rows: "4", disabled: true, style: "margin-top: 4px; width: 100%;", class: 'form-control'
+        = f.hidden_field :body, value: @notification.body
+  .row{style: "margin-top: 20px;"}
+    .col-md-12
+      .form-group.col-md-12
+        %strong Enter value for
+  - template_fields = @template.fields
+  - template_fields.each.with_index(1) do |field, index|
+    .col-md-6
+      .form-group
+        = f.send(:label, field, "#{field}", class: 'normal-font-weight')
+        = f.send(:text_field, field, required: true, class: 'form-control')
+  .col-md-12
+    .pull-left
+      = f.submit 'Submit Notification', class: 'btn btn-success submit-notification'
+  .clearfix
+  %br
+#updated_template_details

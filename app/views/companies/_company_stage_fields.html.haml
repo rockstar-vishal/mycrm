@@ -1,0 +1,13 @@
+.nested-fields.col-md-12{:style => "border: 1px dashed #999; border-radius: 5px; padding: 20px;"}
+  .col-md-6.mb-3
+    .form-group.required
+      = f.collection_select :stage_id, Stage.active, :id, :name, { hide_label: 'true' },{class: "form-control"}
+    %center
+      = link_to_remove_association "Remove", f, :class=>"btn btn-danger"
+  - if f.object.persisted?
+    .col-md-12
+      .form-group.row
+        = f.fields_for :company_stage_statuses do |company_stage_status|
+          = render 'company_stage_status_fields', :f =>  company_stage_status
+        .links.m-4
+          = link_to_add_association "Add Status", f, :company_stage_statuses, class: "btn btn-primary"

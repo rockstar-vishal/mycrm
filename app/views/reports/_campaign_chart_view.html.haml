@@ -1,0 +1,11 @@
+- leads_plottable = {}
+- vist_plottable = {}
+- leads_plottable["name"] = 'Leads Generated'
+- vist_plottable["name"] = 'Visit Done'
+- leads_plottable["data"] = {}
+- vist_plottable["data"] = {}
+- @campaign_date_range.each do |date|
+  - leads_plottable["data"][date] = @campaign_leads.where(created_at: date.beginning_of_day..date.end_of_day).count
+  - vist_plottable["data"][date] = @campaign_visited_leads.where(created_at: date.beginning_of_day..date.end_of_day).count
+= line_chart [leads_plottable, vist_plottable]
+

@@ -1,0 +1,48 @@
+.content-wrapper
+  .content-header
+    .container-fluid
+      .row.mb-2
+        .col-md-9
+          %ol.breadcrumb
+            %li.breadcrumb-item
+              %a{:href => "/"} Home
+            %li.breadcrumb-item.active Manage ExoPhone
+          %h1.m-0.text-dark Manage ExoPhone
+  .content
+    .container-fluid
+      .row
+        .col-lg-12
+          .card
+            .card-header
+              .float-right
+                .input-group
+                  .input-group-btn
+                    = link_to 'Add New ExoPhone', new_mcube_sid_path, remote: true,class: 'btn btn-primary float-right btn-sm'
+              %h3.mb-0 ExoPhones
+            .card-body
+              .table-responsive
+                %table.table.table-bordered.table-hover.dataTables.table-sm.responsive.nowrap{style: 'width:100%!important'}
+                  %thead
+                    %tr
+                      %th Name
+                      %th Description
+                      %th Status
+                      %th Action
+                  %tbody
+                    - @mcube_sids.each do |mcube_sid|
+                      %tr
+                        %td
+                          %strong
+                            = mcube_sid.number
+                        %td
+                          %span.more= mcube_sid.description
+                        %td= (mcube_sid.is_active? ? "Active" : "Inactive")
+                        %td
+                          = link_to edit_mcube_sid_path(mcube_sid.uuid), remote: true, class: "btn btn-primary m-r-5",
+                            style: "padding: 0px; width: 20px;" do
+                            = fa_icon "pencil"
+                          - if current_user.is_super?
+                            = link_to mcube_sid_path(mcube_sid.uuid), class: "btn btn-danger", method: :delete, data: {:confirm => "Would you like to permanently delete ExoPhone?", "commit-class" => "btn btn-success", "cancel-class" => "btn btn-danger"}, style: "padding: 0px; width: 20px;" do
+                              = fa_icon "trash-o"
+              %br
+                = will_paginate @mcube_sids,  :class  =>  "ct-pag"

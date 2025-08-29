@@ -1,0 +1,82 @@
+.content-wrapper
+  .content-header
+    .container-fluid
+      .row.mb-2
+        .col-md-9
+          %ol.breadcrumb
+            %li.breadcrumb-item
+              %a{:href => "/"} Home
+            %li.breadcrumb-item.active Activity Report
+          %h1.m-0.text-dark Activity Report
+  .content
+    .container-fluid
+      .row
+        .col-lg-12
+          .card
+            .card-header
+              .pull-right
+                %a#adv-search{:href => "javascript:void(0);", :style => "margin-left:-2px;", :class=>"btn btn-primary btn-sm"}
+                  Advanced Search
+                  %i.fa.fa-angle-down
+              = link_to params.except(:action, :controller).merge!(format: :csv), class: "btn btn-primary btn-sm", style: "right: 5px;" do
+                = fa_icon "download"
+                Export
+              = render 'reports_button', locals: {report_name: :activity}
+            #adv-searchbox.box-body
+              = form_tag nil, method: :get, class: "filter-search-menu" do
+                .card-header
+                  .custom-search
+                    .row
+                      .col-md-6
+                        = render partial: 'shared/activity_range_selector'
+                      .col-md-3
+                        = render partial: 'shared/projects_filter'
+                      - if current_user.check_source_presence
+                        .col-md-3
+                          = render partial: 'shared/sources_filter'
+                      .col-md-3
+                        = render partial: 'shared/managers_filter'
+                      - if current_user.company.is_allowed_field?("customer_type")
+                        .col-md-3
+                          = render partial: 'shared/customer_type_filter'
+                      .col-md-3
+                        .form-group
+                          %label.label-block &nbsp;
+                          = button_tag type: "submit", class: "btn btn-primary btn-sm pd-fixes align-fixes" do
+                            = fa_icon "search"
+                          = link_to nil, class: "btn btn-primary btn-sm pd-fixes align-fixes" do
+                            = fa_icon "refresh"
+            .card-body
+              - plottable = {}
+              .table-responsive
+                %table.table.table-bordered.table-hover.dataTables.table-sm.responsive.nowrap{style: 'width:100%!important'}
+                  %thead
+                    %tr
+                      %th.all User
+                      %th.all Total Edits
+                      %th.all Status Edits
+                      %th.all Comment Edits
+                      %th.all Unique Leads Edits
+                  %tbody
+                    - overall_counts= 0
+                    - @users.each do |user|
+                      - comment_edits = @comment_edits.detect{|k| k["user_id"] == user.id}
+                      - status_edits = @status_edits.detect{|k| k["user_id"] == user.id}
+                      - uniq_leads_edits = (@unique_activities.where(user_id: user.id).map(&:auditable_id).count rescue 0)
+                      - comment_edits_total = (comment_edits["change_list"].count rescue 0)
+                      - status_edits_total = (status_edits["change_list"].count rescue 0)
+                      - total_edits = comment_edits_total + status_edits_total
+                      - plottable[user.name] = total_edits
+                      - overall_counts += total_edits
+                      %tr
+                        %td= user.name
+                        %td
+                          = link_to ad_path(user_id: user.id), target: "_blank" do
+                            = total_edits
+                        %td= status_edits_total
+                        %td= comment_edits_total
+                        %td
+                          = link_to ad_path(user_id: user.id), target: "_blank" do
+                            = uniq_leads_edits
+              .chart-canvas.d-none.d-sm-block.pieChart
+                = pie_chart(plottable, library: {animation: {easing: 'easeOutQuart'}})

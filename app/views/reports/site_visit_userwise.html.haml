@@ -1,0 +1,58 @@
+.content-wrapper
+  .content-header
+    .container-fluid
+      .row.mb-2
+        .col-md-9
+          %ol.breadcrumb
+            %li.breadcrumb-item
+              %a{:href => "/"} Home
+            %li.breadcrumb-item.active Visits Report
+          %h1.m-0.text-dark Visits Report
+  .content
+    .container-fluid
+      .row
+        .col-lg-12
+          .card
+            .card-header
+              .pull-right
+                %a#adv-search{:href => "javascript:void(0);", :style => "margin-left:-2px;", :class=>"btn btn-primary btn-sm"}
+                  Advanced Search
+                  %i.fa.fa-angle-down
+              = render 'reports_button', locals: {report_name: :site_visit_userwise}
+            #adv-searchbox.box-body
+              = form_tag nil, method: :get, class: "filter-search-menu" do
+                = hidden_field_tag :is_advanced_search, true
+                .card-header
+                  .custom-search
+                    .row
+                      .col-md-6
+                        = render partial: 'shared/visited_range_selector'
+                      .col-md-3
+                        .form-group
+                          %label.label-block &nbsp;
+                          = button_tag type: "submit", class: "btn btn-primary btn-sm pd-fixes align-fixes" do
+                            = fa_icon "search"
+                          = link_to nil, class: "btn btn-primary btn-sm pd-fixes align-fixes" do
+                            = fa_icon "refresh"
+            .card-body
+              - plottable = {}
+              .table-responsive
+                %table.table.table-bordered.table-hover.dataTables.table-sm.responsive.nowrap{style: 'width:100%!important'}
+                  %thead
+                    %tr
+                      %th.all User
+                      %th.all Total
+                  %tbody
+                    - @users.each do |user|
+                      - this_user_data = @data.select{|d| d["user_id"] = user.id}
+                      - if this_user_data.present?
+                        - user_total = this_user_data.collect{|d| d["visit_count"].count}.sum
+                        - plottable[user.name] = user_total
+
+                        %tr
+                          %td= user.name
+                          %td
+                            = link_to vd_path(sv_user: [user.id]), target: "_blank" do
+                              = this_user_data.map{|data| data["visit_count"].count}.count
+              .chart-canvas.d-none.d-sm-block.pieChart
+                = pie_chart(plottable, library: {animation: {easing: 'easeOutQuart'}})

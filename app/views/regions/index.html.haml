@@ -1,0 +1,51 @@
+.content-wrapper
+  .content-header
+    .container-fluid
+      .row.mb-2
+        .col-md-9
+          %ol.breadcrumb
+            %li.breadcrumb-item
+              %a{:href => "/"} Home
+            %li.breadcrumb-item.active Regions
+          %h1.m-0.text-dark Regions
+  .content
+    .container-fluid
+      .row
+        .col-lg-12
+          .card
+            .card-header
+              .box-header.row
+                .box-tools.col-md-12{:style=>"top:inherit;"}
+                  .float-left
+                    = form_tag(regions_path, :method => :get) do
+                      .input-group.input-group-sm
+                        = text_field_tag :search_string, params[:search_string], :placeholder => "Search Name/City", :class => 'form-control'
+                        .input-group-btn
+                          = button_tag type: "submit", class: "btn btn-default btn-sm pd-fixes" do
+                            = fa_icon "search"
+                  .float-right
+                    .input-group
+                      .input-group-btn
+                        = link_to 'Add New Region', new_region_path, remote: true,
+                          class: 'btn btn-primary float-right btn-sm'
+            .card-body
+              .table-responsive
+                %table.table.table-bordered.table-hover.dataTables.table-sm.responsive.nowrap{style: 'width:100%!important'}
+                  %thead
+                    %tr
+                      %th.all Name
+                      %th.all City Name
+                      %th.all Action
+                  %tbody
+                    - @regions.each do |region|
+                      %tr
+                        %td
+                          = region.name
+                        %td
+                          = region.city.name
+                        %td
+                          = link_to (fa_icon "pencil"), edit_region_path(region), remote: true, class: "btn btn-primary btn-sm"
+          - if @regions.present?
+            .pagination-custom-holder
+              %strong{style: "margin-left: 0;"} Regions Count - #{@regions.total_entries}
+              = will_paginate @regions, :class  =>  "ct-pag"

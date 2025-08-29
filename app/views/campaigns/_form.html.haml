@@ -1,0 +1,70 @@
+= bootstrap_form_for @campaign, url: (@campaign.new_record? ? campaigns_path : campaign_path(@campaign.uuid)),remote: true do |f|
+  - if @campaign.errors.any?
+    #error_explanation
+      %h2
+        = pluralize(@campaign.errors.count, "error")
+        prohibited this Campaign from being saved:
+      %ul
+        - @campaign.errors.full_messages.each do |message|
+          %li= message
+  .row
+    .col-md-6
+      .form-group
+        = f.text_field :title, class: "form-control", placeholder: "Title"
+    .col-md-6
+      .form-group
+        = f.select :source_id, options_from_collection_for_select(current_user.company.sources, :id, :name, f.object.source_id), prompt: "Lead Source", class: "form-control multi-select-list", multiple: true
+    .col-md-6
+      .form-group
+        .input-group
+          .input-group-addon
+          = f.text_field :start_date, class: "form-control dateFormat", placeholder: "Start date"
+    .col-md-6
+      .form-group
+        .input-group
+          .input-group-addon
+          = f.text_field :end_date,class: "form-control dateFormat", placeholder: "End date"
+    .col-md-6
+      .form-group
+        = f.number_field :budget, class: "form-control currency_input", data: {view_target: "text_budget_from"}, placeholder: "Budget"
+        %span{:class=>"currency_text", :id=>"text_budget_from"}
+    - if current_user.company.fb_campaign_enabled
+      .col-md-6
+        = f.select :project_ids, options_from_collection_for_select(current_user.company.projects, :id, :name, f.object.project_ids), { label: 'Projects'}, {class: 'form-control chosen-select', multiple: true}
+  %div{align: "center"}
+    .col-md-12
+      .form-group
+        = button_tag type: "submit", class: "btn btn-primary", data: {disable_with: "Please Wait..."} do
+          = fa_icon "floppy-o"
+          Save
+        = link_to campaigns_path, class: "btn btn-danger" do
+          = fa_icon "close"
+          Cancel
+:javascript
+  $('.dateFormat').datetimepicker({
+    timepicker: false,
+    format:'d/m/Y'
+  });
+
+  $(".currency_input").on("keyup", function(e){
+    var x=$(this).val();
+    var to_fill_span = $("#"+$(this).data("viewTarget"));
+    to_fill_span.html(inWords(x));
+  });
+
+  $('.currency_input').bind('focusout', function() {
+    var x=$(this).val();
+    var to_fill_span = $("#"+$(this).data("viewTarget"));
+    to_fill_span.hide();
+  });
+
+  $('.currency_input').bind('focusin', function() {
+    var x=$(this).val();
+    var to_fill_span = $("#"+$(this).data("viewTarget"));
+    to_fill_span.show();
+  });
+  $('.chosen-select').chosen({
+    allow_single_deselect: true,
+    no_results_text: 'No results matched',
+    width: '350px'
+  });

@@ -1,0 +1,98 @@
+.content-wrapper
+  .content-header
+    .container-fluid
+      .row.mb-2
+        .col-md-9
+          %ol.breadcrumb
+            %li.breadcrumb-item
+              %a{:href => "/"} Home
+            %li.breadcrumb-item.active Visits Report
+          %h1.m-0.text-dark Visits Report
+  .content
+    .container-fluid
+      .row
+        .col-lg-12
+          .card
+            .card-header
+              .pull-right
+                %a#adv-search{:href => "javascript:void(0);", :style => "margin-left:-2px;", :class=>"btn btn-primary btn-sm"}
+                  Advanced Search
+                  %i.fa.fa-angle-down
+              = link_to params.except(:action, :controller).merge!(format: :csv), class: "btn btn-primary btn-sm", style: "right: 5px;" do
+                = fa_icon "download"
+                Export
+              = render 'reports_button', locals: {report_name: :visits}
+            #adv-searchbox.box-body
+              = form_tag nil, method: :get, class: "filter-search-menu" do
+                .card-header
+                  .custom-search
+                    .row
+                      = hidden_field_tag :is_advanced_search, true
+                      .col-md-6
+                        = render partial: 'shared/visited_range_selector'
+                      .col-md-3
+                        = render partial: 'shared/projects_filter'
+                      - if current_user.check_source_presence
+                        .col-md-3
+                          = render partial: 'shared/sources_filter'
+                      .col-md-3
+                        = render partial: 'shared/managers_filter'
+                      - if current_user.company.is_allowed_field?("customer_type")
+                        .col-md-3
+                          = render partial: 'shared/customer_type_filter'
+                      - if current_user.company.setting.present? && current_user.company.setting.visit_filter_enable
+                        .col-md-3
+                          .form-group
+                            %label Select visit counts
+                            = select_tag :visit_counts, options_for_select(["Fresh Visit", "Revisit"], params[:visit_counts]), prompt: 'Select visit counts', class: "form-control"
+                      .col-md-3
+                        .form-group
+                          %label.label-block &nbsp;
+                          = button_tag type: "submit", class: "btn btn-primary btn-sm pd-fixes align-fixes" do
+                            = fa_icon "search"
+                          = link_to nil, class: "btn btn-primary btn-sm pd-fixes align-fixes" do
+                            = fa_icon "refresh"
+            .card-body
+              - plottable = {}
+              .table-responsive
+                %table.table.table-bordered.table-hover.dataTables.table-sm.responsive.nowrap{style: 'width:100%!important'}
+                  %thead
+                    %tr
+                      %th.all User
+                      %th.all Total (Unique leads)
+                      - @statuses.uniq.each do |status|
+                        %th.desktop= "#{status.name} (Unique leads)"
+                  - overall_counts = 0
+                  %tbody
+                    - @users.each do |user|
+                      - this_user_data = @leads.where(:user_id=>user.id)
+                      - if this_user_data.present?
+                        - user_total = this_user_data.count
+                        - plottable[user.name] = user_total
+                        - overall_counts += user_total
+                        %tr
+                          %td= user.name
+                          %td
+                            = link_to vd_path(:assigned_to=>[user.id]), target: "_blank" do
+                              - uniq_total_count=this_user_data.select(:id).map(&:id).uniq.count
+                              = "#{user_total}"
+                              = " (#{uniq_total_count })" if uniq_total_count > 0
+                          -@statuses.uniq.each do |status|
+                            - this_status_data = this_user_data.where(:status_id=>status.id)
+                            %td
+                              = link_to vd_path(:assigned_to=>[user.id], :lead_statuses=>[status.id]), target: "_blank" do
+                                - uniq_count = this_status_data.select(:id).map(&:id).uniq.count
+                                = "#{this_status_data.count}"
+                                = " (#{uniq_count})"  if uniq_count > 0
+                  - if @leads.present?
+                    %tbody
+                      %td Total
+                      %td
+                        = link_to vd_path(:assigned_to=>[@users.ids]), target: "_blank" do
+                          = overall_counts
+                      - @statuses.uniq.each do |status|
+                        %td
+                          = link_to vd_path(:assigned_to=>[@users.ids], :lead_statuses=>[status.id]), target: "_blank" do
+                            = @leads.where(user_id: @users.ids,:status_id=>status.id).count
+              .chart-canvas.d-none.d-sm-block.pieChart
+                = pie_chart(plottable, library: {animation: {easing: 'easeOutQuart'}})

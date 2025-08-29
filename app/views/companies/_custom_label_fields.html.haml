@@ -1,0 +1,9 @@
+.nested-fields.col-md-4{:style => "border: 1px dashed #999; border-radius: 5px; padding: 20px;"}
+  .form-group
+    = f.select :key, options_for_select((::Company.custom_label_options).map{|k| [k, k]}, f.object.key), {include_blank: "Please Select"}, class: 'form-control'
+  .form-group
+    = f.text_field :default_value, class: "form-control"
+  .form-group
+    = f.text_field :custom_value, class: "form-control"
+  %center
+    = link_to_remove_association "Remove", f, :class=>"btn btn-danger"

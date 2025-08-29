@@ -1,0 +1,36 @@
+.pull-right
+  %a#adv-search{:href => "javascript:void(0);", :style => "margin-left:-2px;", :class=>"btn btn-primary btn-sm"}
+    Advanced Search
+    %i.fa.fa-angle-down
+#adv-searchbox.box-body
+  = form_tag nil, method: :get, class: "filter-search-menu" do
+    .card-header
+      .custom-search
+        .row
+          .col-md-6
+            = render partial: 'shared/date_range_display'
+          .col-md-6
+            = render partial: 'shared/updated_at_filter'
+          .col-md-3
+            = render partial: 'shared/projects_filter'
+          - if current_user.check_source_presence
+            .col-md-3
+              = render partial: 'shared/sources_filter'
+          - if params[:action] == 'leads'
+            .col-md-3
+              = render partial: 'shared/users_filter'
+          .col-md-3
+            = render partial: 'shared/managers_filter'
+          - if current_user.company.is_allowed_field?("customer_type")
+            .col-md-3
+              = render partial: 'shared/customer_type_filter'
+          - if current_user.company.is_allowed_field?("booking_date") && params[:action] == 'leads'
+            .col-md-6
+              = render partial: 'shared/booking_date_filter'
+          .col-md-3
+            .form-group
+              %label.label-block &nbsp;
+              = button_tag type: "submit", class: "btn btn-primary btn-sm pd-fixes align-fixes" do
+                = fa_icon "search"
+              = link_to nil, class: "btn btn-primary btn-sm pd-fixes align-fixes" do
+                = fa_icon "refresh"

@@ -1,0 +1,126 @@
+.content-wrapper
+  .content-header
+    .container-fluid
+      .row.mb-2
+        .col-md-4
+          %ol.breadcrumb
+            %li.breadcrumb-item
+              %a{:href => "/"} Home
+            %li.breadcrumb-item.active DashBoard
+  .content
+  .container-fluid.trend-chart
+    .row
+      .col-lg-8
+        .card
+          .card-header
+            %h4.m-0 Trends Report
+          .card-body
+            .chart-canvas.d-none.d-sm-block
+              = area_chart [{name: "Leads Generated", data: @lead_gen.map{|k| [k['created_date'], k['count']]}}, {name: "Visits Done", data: @visits.map{|k| [k['visit_date'], k['count']]}}, {name: "Conversions", data: @conversions.map{|k| [k['conversion_date'], k['count']]}}], download: true, zeros: true, library: {animation: {easing: 'easeOutQuart'}}
+      - plottable = {}
+      - @campaigns.each.with_index(1) do |campaign, index|
+        - leads_count = @leads.where(source_id: campaign.source_id, created_at: campaign.start_date.beginning_of_day..campaign.end_date.end_of_day).count
+        - plottable[campaign.title] = leads_count
+      - if plottable.present?
+        .col-lg-4
+          .card
+            .card-header
+              %h4.m-0 Marketing Campaign Report
+            .card-body
+              .chart-canvas.d-none.d-sm-block
+                = pie_chart(plottable, library: {animation: {easing: 'easeOutQuart'}})
+              = link_to 'Detailed Report', reports_campaigns_path, class: 'text-center d-block mt-2'
+      - plottable = {}
+      - @users.each do |user|
+        - this_user_data = @user_data.select{|k| k["user_id"] == user.id}
+        - if this_user_data.present?
+          - user_total = (this_user_data.map{|k| k["lead_ids"].count}.sum rescue 0)
+          - plottable[user.name] = user_total
+      -if plottable.present?
+        .col-lg-4
+          .card
+            .card-header
+              %h4.m-0 Leads Report
+            .card-body
+              .chart-canvas.d-none.d-sm-block
+                = pie_chart(plottable, library: {animation: {easing: 'easeOutQuart'}})
+              = link_to 'Detailed Report', reports_leads_path, class: 'text-center d-block mt-2'
+      - plottable = {}
+      - @sources.each do |source|
+        - this_source_data = @data.select{|k| k["source_id"] == source.id}
+        - if this_source_data.present?
+          - source_total = (this_source_data.map{|k| k["lead_ids"].count}.sum rescue 0)
+          - plottable[source.name] = source_total
+      - if plottable.present? && current_user.check_source_presence
+        .col-lg-4
+          .card
+            .card-header
+              %h4.m-0 Source Report
+            .card-body
+              .chart-canvas.d-none.d-sm-block.pieChart
+                = pie_chart(plottable, library: {animation: {easing: 'easeOutQuart'}})
+              = link_to 'Detailed Report', reports_source_path, class: 'text-center d-block mt-2'
+      - plottable = {}
+      - @projects.each do |project|
+        - this_project_data = @project_data.select{|k| k["project_id"] == project.id}
+        - if this_project_data.present?
+          - project_total = (this_project_data.map{|k| k["lead_ids"].count}.sum rescue 0)
+          - plottable[project.name] = project_total
+      -if plottable.present?
+        .col-lg-4
+          .card
+            .card-header
+              %h4.m-0 Projects Report
+            .card-body
+              .chart-canvas.d-none.d-sm-block.pieChart
+                = pie_chart(plottable, library: {animation: {easing: 'easeOutQuart'}})
+              = link_to 'Detailed Report', reports_projects_path, class: 'text-center d-block mt-2'
+      - if current_user.company.is_allowed_field?("lease_expiry_date")
+        .col-lg-8
+          .card
+            .card-header
+              %h4.m-0 Lease Agreements Statistics
+            .card-body
+              .chart-canvas.d-none.d-sm-block
+                .area-chart#chart-lease
+              .row
+                = link_to "Detailed Expired Report", leads_path(is_advanced_search: true, expired_from: Date.today-1.month, expired_upto: Date.today-1.day), class: 'text-center d-block mt-2 ml-4 danger', target: "_blank"
+                = link_to "Detailed Expiring Report", leads_path(is_advanced_search: true, expired_from: Date.today, expired_upto: Date.today+1.month), class: 'text-center d-block mt-2 ml-2', target: "_blank"
+
+:javascript
+  $(document).ready(function(){
+    if($('#chart-lease').length > 0){
+      $.ajax({
+        type: "GET",
+        url: '/dashboards/lease_data',
+        dataType: 'json',
+        success:function(response){
+          if(response.status == 200){
+            var expiring_data = {
+              name: "Expiring Lease Agreements",
+              data: response.expiring_lease_chart.map(function(x){
+                return [x.lease_expiry_date, x.count]})
+            }
+            var expired_data = {
+              name: "Expired Lease Agreements",
+              data: response.expired_lease_chart.map(function(x){
+                return [x.lease_expiry_date, x.count]})
+            }
+            var data = [
+              expiring_data,
+              expired_data
+            ]
+            new Chartkick.AreaChart("chart-lease", data, {download: true, zeros: true, library: {animation: {easing: 'easeOutQuart'}}})
+          }
+        }
+      })
+    }
+  });
+
+:css
+  .trend-chart .chart-canvas #chart-1{
+    height: 233px !important;
+  }
+  .trend-chart .chart-canvas #chart-2, .trend-chart .chart-canvas #chart-3, .trend-chart .chart-canvas #chart-4, .trend-chart .chart-canvas #chart-5{
+    height: 200px !important;
+  }

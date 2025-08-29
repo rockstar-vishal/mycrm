@@ -1,0 +1,46 @@
+%body
+  %header.main-header
+    = link_to root_path, class: 'logo' do
+      -if current_user.is_sys_ad
+        %span.logo-mini
+          = image_tag "small-logo.jpg", class: "img-responsive"
+        %span.logo-lg
+          = image_tag current_user.company.logo.url(:original), :class=>"img-responsive", alt: "Compnay Logo"
+      - else
+        %span.logo-mini
+          = image_tag current_user.company.icon.url(:original), class: "img-responsive", alt: "Compnay Icon"
+        %span.logo-lg
+          = image_tag "logo.jpg", class: "img-responsive"
+    %nav.navbar.navbar-static-top{:role => "navigation"}
+      %a.sidebar-toggle{"data-toggle" => "offcanvas", :href => "#", :role => "button"}
+        %span.sr-only Toggle navigation
+      .navbar-custom-menu
+        %ul.nav.navbar-nav
+          %li.dropdown.user.user-menu
+            %a.dropdown-toggle{"data-toggle" => "dropdown", :href => "#"}
+              - if current_user.image.present?
+                = image_tag "#{current_user.image.url}", class: "user-image", alt: "User Image"
+              - else
+                = image_tag "blank_user.jpg", class: "user-image", alt: "User Image"
+              %span.hidden-xs
+                = current_user.full_name
+            %ul.dropdown-menu
+              %li.user-header
+                - if current_user.image.present?
+                  = image_tag "#{current_user.image.url}", class: "user-image", alt: "User Image"
+                - else
+                  = image_tag "blank_user.jpg", class: "user-image", alt: "User Image"
+                %p
+                  = current_user.full_name
+                  %br
+                  = current_user.role.name
+                  %small
+                    = current_user.email
+              %li.user-footer
+                .pull-left
+                  %a.btn.btn-default.btn-flat{:href => edit_user_path(current_user)}
+                    Edit Profile
+                .pull-right
+                  = link_to destroy_user_session_path, class: "btn btn-default", method: :delete do
+                    Logout
+                    = fa_icon 'sign-out'

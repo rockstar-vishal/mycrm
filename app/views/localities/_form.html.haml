@@ -1,0 +1,25 @@
+= bootstrap_form_for @locality, remote: true do |f|
+  - if @locality.errors.any?
+    #error_explanation
+      %h2
+        = pluralize(@locality.errors.count, "error")
+        prohibited this Locality from being saved:
+      %ul
+        - @locality.errors.full_messages.each do |message|
+          %li= message
+  .row
+    .col-md-6
+      .form-group
+        = f.text_field :name, class: "form-control", placeholder: "Locality Name"
+    .col-md-6
+      .form-group
+        = f.select :region_id, options_from_collection_for_select(::Region.all.order(:name), :id, :name, f.object.region_id), { prompt: "Select Region" }, { class: 'form-control custom-select' }
+  %div{align: "center"}
+    .col-md-12
+      .form-group
+        = button_tag type: "submit", class: "btn btn-primary", data: {disable_with: "Please Wait..."} do
+          = fa_icon "floppy-o"
+          Save
+        = link_to localities_path, class: "btn btn-danger" do
+          = fa_icon "close"
+          Cancel

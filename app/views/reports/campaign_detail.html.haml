@@ -1,0 +1,31 @@
+.content-wrapper
+  .content-header
+    .container-fluid
+      .row.mb-2
+        .col-md-9
+          %ol.breadcrumb
+            %li.breadcrumb-item
+              %a{:href => "/"} Home
+            %li.breadcrumb-item.active
+              %a{:href => "/reports/campaigns"} Marketing Report
+            %li.breadcrumb-item.active
+              = @campaign.title
+          %h1.m-0.text-dark Campaigns
+  .content
+    .container-fluid
+      .row
+        .col-lg-12
+          .card
+            .card-header
+              .pull-right
+                - if params[:table_view]
+                  = link_to "View Graph",reports_campaign_detail_path(@campaign.uuid), class: "btn  bg-gradient-primary elevation-1 btn-sm mr-2"
+                - else
+                  = link_to "View Table",reports_campaign_detail_path(@campaign.uuid, table_view: true), class: "btn  bg-gradient-primary elevation-1 btn-sm mr-2"
+            .card-body
+              - if params[:table_view]
+                = render 'campaign_table_view'
+              - else
+                = render 'campaign_chart_view'
+
+

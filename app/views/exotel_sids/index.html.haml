@@ -1,0 +1,52 @@
+.content-wrapper
+  .content-header
+    .container-fluid
+      .row.mb-2
+        .col-md-9
+          %ol.breadcrumb
+            %li.breadcrumb-item
+              %a{:href => "/"} Home
+            %li.breadcrumb-item.active Manage ExoPhone
+          %h1.m-0.text-dark Manage ExoPhone
+  .content
+    .container-fluid
+      .row
+        .col-lg-12
+          .card
+            .card-header
+              .float-right
+                .input-group
+                  .input-group-btn
+                    = link_to 'Add New ExoPhone', new_exotel_sid_path, remote: true,class: 'btn btn-primary float-right btn-sm'
+              %h3.mb-0 ExoPhones
+            .card-body
+              .table-responsive
+                %table.table.table-bordered.table-hover.dataTables.table-sm.responsive.nowrap{style: 'width:100%!important'}
+                  %thead
+                    %tr
+                      %th Name
+                      %th Description
+                      %th Status
+                      %th Incoming enabled?
+                      %th Project
+                      %th Action
+                  %tbody
+                    - @exotel_sids.each do |exotel_sid|
+                      %tr
+                        %td
+                          %strong
+                            = exotel_sid.number
+                        %td
+                          %span.more= exotel_sid.description
+                        %td= (exotel_sid.is_active? ? "Active" : "Inactive")
+                        %td= (exotel_sid.only_inbound_service? ? 'Yes' : 'No')
+                        %td= exotel_sid.project&.name
+                        %td
+                          = link_to edit_exotel_sid_path(exotel_sid.uuid), remote: true, class: "btn btn-primary m-r-5",
+                            style: "padding: 0px; width: 20px;" do
+                            = fa_icon "pencil"
+                          - if current_user.is_super?
+                            = link_to exotel_sid_path(exotel_sid.uuid), class: "btn btn-danger", method: :delete, data: {:confirm => "Would you like to permanently delete ExoPhone?", "commit-class" => "btn btn-success", "cancel-class" => "btn btn-danger"}, style: "padding: 0px; width: 20px;" do
+                              = fa_icon "trash-o"
+              %br
+                = will_paginate @exotel_sids,  :class  =>  "ct-pag"

@@ -1,0 +1,71 @@
+.login-page
+  .login-wrapper.shadow
+    - if request.base_url.include?("acre-junction")
+      = image_tag "aj-logo-new.png", class: "logo img-fluid"
+    - else
+      = image_tag "h4-logo.png", class: "logo img-fluid"
+    %h1.small.text-left.my-2.text-muted Reset Password
+    = bootstrap_form_for resource, as: resource_name, url: password_path(resource_name), html: { method: :post, class: 'horizontal' } do |f|
+      = devise_error_messages!
+      .form-group
+        = f.email_field :email, autofocus: true, placeholder: 'Email', class: 'form-control'
+      .form-group
+        = f.submit 'SEND', class: 'btn btn-primary btn-default btn-block btn-shadow'
+
+:css
+  .login-page{
+    background: linear-gradient(to right, #d8deef, #C9D6FF);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+  }
+  .login-wrapper {
+    max-width:300px;
+    width: 100%;
+    padding: 20px;
+    background:#fff;
+    border-radius: 10px;
+    text-align: center;
+  }
+  .login-wrapper .logo {
+    max-width: 200px;
+    max-height: 60px;
+    margin-bottom: 20px;
+    
+  }
+  .login-wrapper input{
+    border: 1px solid #dfdfdf;
+  }
+  .btn-primary {
+      background: linear-gradient(14deg, #74B63E 0%, rgba(23,97,253,0.6));
+  }
+  .btn-default {
+    background: linear-gradient(14deg, #74B63E 0%, rgb(92 178 209));
+    color: #fff;
+  }
+  .btn-shadow{
+    box-shadow: 3px 3px 10px 0 rgba(0, 0, 0, 0.180);
+  }
+  .text-link{
+    font-size: 14px;
+    display: table;
+    margin-left: auto;
+  }
+  .login-text {
+    font-size: 12px;
+    opacity: .5;
+    text-align: left;
+  }
+  .input-icon {
+    position: relative;
+  }
+  .input-icon  svg{
+    position: absolute;
+    width: 14px;
+    height: 14px;
+    right: 12px;
+    top:12px;
+    fill:#1761fd;
+  }

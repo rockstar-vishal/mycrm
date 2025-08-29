@@ -1,0 +1,1 @@
+MagicField.include MagicFieldExtension

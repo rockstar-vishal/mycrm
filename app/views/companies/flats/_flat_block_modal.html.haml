@@ -1,0 +1,79 @@
+.modal-header
+  %h5#flatBlockTitle.modal-title Block Flat: #{@flat_name}
+  %button.hide{"aria-label" => "Close", "data-dismiss" => "modal", :type => "button"}
+    %span{"aria-hidden" => "true"} ×
+.modal-body
+  .row
+    .col-md-12
+      .form-group
+        %h6.mt-4.text-dark Sales Person(s)
+        = label_tag "Assigned To"
+        = select_tag "assigned_to[]", options_from_collection_for_select(current_user.manageables, :email, :name, current_user.email), class: "form-control multi-select-list", multiple: true, data: {prompt_name: 'Assigned To'}
+        = hidden_field_tag 'flat_id', @flat_id
+        = hidden_field_tag 'building_id', @building_id
+        = hidden_field_tag 'flat_name', @flat_name
+    .col-md-4
+      .form-group
+        %label{:for => ""} Start Date
+        .input-group
+          .input-group-addon
+            = fa_icon "calendar"
+          = text_field_tag :date, params[:date], class: "form-control dateFormat", placeholder: ""
+    .w-100
+    .col-md-12
+      .form-group
+        %label{:for => ""} Comments
+        = text_area_tag :comment, nil, rows: 2, class: "form-control"
+  .modal-footer
+  %button.btn.bg-gradient-primary.block-flat{"data-dismiss" => "modal"} Save changes
+
+:javascript
+  $('.multi-select-list').each(function(){
+    var text = $(this).closest('select').data('prompt-name')
+    text = text ? 'Select '+ text : 'Please Select'
+    $(this).multiselect({
+      numberDisplayed: 1,
+      enableFiltering: true,
+      enableCaseInsensitiveFiltering: true,
+      nonSelectedText: text,
+      includeSelectAllOption: true,
+      buttonWidth: '100%',
+      maxHeight: 350,
+    });
+  });
+
+  function getFlatsDetail(building_id) {
+    var url = '/companies/flats/'+building_id+'/fetch_building_flats'
+    $.ajax({
+      type: 'GET',
+      url: url,
+      dataType: 'script'
+    });
+  }
+
+
+  $('.block-flat').click(function(){
+    var flat_id = $('#flat_id').val();
+    var user_emails = $('#assigned_to_').val();
+    var date = $("#date").val();
+    var comment = $("#comment").val();
+    var building_id = $("#building_id").val();
+    $.ajax({
+      type: 'POST',
+      url: '/companies/flats/'+flat_id+'/block_flat',
+      data:{
+        flat_id: flat_id,
+        user_ids: user_emails,
+        date: date,
+        comment: comment
+      },
+      dataType: 'json',
+      success: function(response) {
+        if (response["status"]){
+          getFlatsDetail(building_id);
+        }else{
+          toastr.error(response["message"])
+        }
+      }
+    });
+  });

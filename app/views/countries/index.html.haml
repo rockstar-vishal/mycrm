@@ -1,0 +1,41 @@
+.content-wrapper
+  .content-header
+    .container-fluid
+      .row.mb-2
+        .col-md-9
+          %ol.breadcrumb
+            %li.breadcrumb-item
+              %a{:href => "/"} Home
+            %li.breadcrumb-item.active Countries
+          %h1.m-0.text-dark Countries
+  .content
+    .container-fluid
+      .row
+        .col-lg-12
+          .card
+            .card-header
+              .box-header.row
+                .box-tools.col-md-12{:style=>"top:inherit;"}
+                  .float-right
+                    .input-group
+                      .input-group-btn
+                        = link_to 'Add New Country', new_country_path, remote: true,
+                          class: 'btn btn-primary float-right btn-sm'
+            .card-body
+              .table-responsive
+                %table.table.table-bordered.table-hover.dataTables.table-sm.responsive.nowrap{style: 'width:100%!important'}
+                  %thead
+                    %tr
+                      %th.all Name
+                      %th.all Action
+                  %tbody
+                    - @countries.each do |c|
+                      %tr
+                        %td
+                          = c.name
+                        %td
+                          = link_to (fa_icon "pencil"), edit_country_path(c), remote: true, class: "btn btn-primary btn-sm"
+          - if @countries.present?
+            .pagination-custom-holder
+              %strong{style: "margin-left: 0;"} Countries Count - #{@countries.total_entries}
+              = will_paginate @countries, :class  =>  "ct-pag"

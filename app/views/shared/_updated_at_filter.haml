@@ -1,0 +1,15 @@
+.row
+  .col-md-6
+    .form-group
+      = label_tag :updated_from, 'Updated From ', class: 'control-label'
+      .input-group
+        %span.input-group-addon
+          = fa_icon 'calendar'
+        = text_field_tag :updated_from, (params[:updated_from].to_date rescue nil), class: 'form-control dateFormat pull-right'
+  .col-md-6
+    .form-group
+      = label_tag :updated_upto, 'Updated Upto', class: 'control-label'
+      .input-group
+        %span.input-group-addon
+          = fa_icon 'calendar'
+        = text_field_tag :updated_upto, (params[:updated_upto].to_date rescue nil), class: 'form-control dateFormat pull-right'

@@ -1,0 +1,37 @@
+.content-wrapper
+  .content-header
+    .container-fluid
+      .row.mb-2
+        .col-md-9
+          %ol.breadcrumb
+            %li.breadcrumb-item
+              %a{:href => "/"} Home
+            %li.breadcrumb-item.active Sub Sources
+          %h1.m-0.text-dark Sub Sources
+  .content
+    .container-fluid
+      .row
+        .col-lg-12
+          .card
+            .card-header
+              .float-right
+                .input-group
+                  .input-group-btn
+                    = link_to 'Add New Sub source', new_sub_source_path, remote: true, class: 'btn btn-primary float-right btn-sm'
+              %h4.mb-0 Sub Sources
+            .card-body
+              .table-responsive
+                %table.table.table-bordered.table-hover.dataTables.table-sm.responsive.nowrap{style: 'width:100%!important'}
+                  %thead
+                    %tr
+                      %th.all Name
+                      %th Action
+                  %tbody
+                    - @sub_sources.each do |sub_source|
+                      %tr
+                        %td= sub_source.name
+                        %td
+                          = link_to (fa_icon "pencil"), edit_sub_source_path(sub_source.uuid), remote: true, class: "btn btn-primary btn-sm"
+          .pagination-custom-holder
+            %strong{style: "margin-left: 0;"} Sub sources Count - #{@sub_sources.count}
+            = will_paginate @sub_sources, :class  =>  "ct-pag"

@@ -1,0 +1,6 @@
+- if current_user.present? && current_user.company.setting.present?
+  - if current_user.company.call_response_report.present?
+    %li.nav-item
+      = link_to reports_user_call_reponse_report_path, class: "nav-link #{'active' if (params[:action] == 'user_call_reponse')}" do
+        %i.nav-icon.fa.fa-circle-o.ct-city-icon
+        %p Call Response Report

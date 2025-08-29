@@ -1,0 +1,77 @@
+.content-wrapper
+  .content-header
+    .container-fluid
+      .row.mb-2
+        .col-md-9
+          %ol.breadcrumb
+            %li.breadcrumb-item
+              %a{:href => "/"} Home
+            %li.breadcrumb-item.active Call Report
+          %h1.m-0.text-dark Call Report
+  .content
+    .container-fluid
+      .row
+        .col-lg-12
+          .card
+            .card-header
+              .pull-right
+                %a#adv-search{:href => "javascript:void(0);", :style => "margin-left:-2px;", :class=>"btn btn-primary btn-sm"}
+                  Advanced Search
+                  %i.fa.fa-angle-down
+            #adv-searchbox.box-body
+              = form_tag nil, method: :get, class: "filter-search-menu" do
+                = hidden_field_tag :is_advanced_search, true
+                .card-header
+                  .custom-search
+                    .row
+                      .col-md-6
+                        = render partial: 'shared/date_range_display'
+                      .col-md-3
+                        .form-group
+                          %label Select Direction
+                          = select_tag :call_direction, options_for_select(["Incoming", "Outgoing"], params[:call_direction]), prompt: 'Select Direction', class: "form-control"
+                      .col-md-3
+                        .form-group
+                          %label.label-block &nbsp;
+                          = button_tag type: "submit", class: "btn btn-primary btn-sm pd-fixes align-fixes", is_advanced_search: "true" do
+                            = fa_icon "search"
+                          = link_to nil, class: "btn btn-primary btn-sm pd-fixes align-fixes" do
+                            = fa_icon "refresh"
+            .card-body
+              - plottable = {}
+              .table-responsive
+                %table.table.table-bordered.table-hover.dataTables.table-sm.responsive.nowrap{style: 'width:100%!important'}
+                  %thead
+                    %tr
+                      %th.all User
+                      %th Total Calls
+                      %th Completed
+                      %th Missed
+                      %th Abandoned
+                      %th Avg. Talk Time
+                      %th Total Talk Time
+                  %tbody
+                    - @users.each do |user|
+                      %tr
+                        %td= user.name
+                        - total_count = @data.where(user_id: user.id).count
+                        - plottable[user.name] = total_count
+                        %td
+                          = link_to call_logs_leads_path(params.merge(call_log_report: true, is_advanced_search: true, start_date: @start_date, end_date: @end_date, user_ids: [user.id])), target: "_blank" do
+                            = total_count
+                        %td
+                          = link_to call_logs_leads_path(params.merge(call_log_report: true, is_advanced_search: true, completed: true, start_date: @start_date, end_date: @end_date, user_ids: [user.id])), target: "_blank" do
+                            = @data.completed_calls.where(user_id: user.id).count
+                        %td
+                          = link_to call_logs_leads_path(params.merge(call_log_report: true, is_advanced_search: true, missed_calls: true, start_date: @start_date, end_date: @end_date, user_ids: [user.id])), target: "_blank" do
+                            = @data.missed.where(user_id: user.id).count
+                        %td
+                          = link_to call_logs_leads_path(params.merge(call_log_report: true, is_advanced_search: true, abandoned_calls: true, start_date: @start_date, end_date: @end_date, user_ids: [user.id])), target: "_blank" do
+                            = @data.abandoned_calls.where(user_id: user.id).count
+                        - duration = @data.where(user_id: user.id).collect{|c| c.duration}
+                        - avg_duration = duration.map(&:to_i)
+                        - avg_talk_time= (avg_duration.sum.to_f / avg_duration.count).round(2)
+                        %td= avg_talk_time.nan? ? 0 : avg_talk_time
+                        %td= avg_duration.sum
+                .chart-canvas.d-none.d-sm-block.pieChart
+                  = pie_chart(plottable, library: {animation: {easing: 'easeOutQuart'}})

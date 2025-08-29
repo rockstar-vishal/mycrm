@@ -1,0 +1,5 @@
+.row
+  .col-md-12
+    .form-group
+      %label Select Sources
+      = select_tag :source_ids, options_from_collection_for_select(@sources, :id, :name, params[:source_ids]), multiple: true, class: "form-control multi-select-list"

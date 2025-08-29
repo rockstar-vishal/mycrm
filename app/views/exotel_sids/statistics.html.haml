@@ -1,0 +1,626 @@
+.content-wrapper
+  .content-header
+    .container-fluid
+      .row.mb-2
+        .col-md-9
+          %ol.breadcrumb
+            %li.breadcrumb-item
+              %a{:href => "/"} Home
+            %li.breadcrumb-item.active Call Center Dashboard
+          %h1.m-0.text-dark Call Center Dashboard
+  .content
+    .container-fluid.trend-chart
+      .row
+        - plottable = {}
+        - in_progress_count = @call_logs.incoming.where("leads_call_logs.other_data->>'status' IN (?)", ['in-progress']).count
+        - abandoned_count = @call_logs.incoming.abandoned_calls.count
+        - completed_count = @call_logs.completed_calls.count
+        - plottable["In Progress"] = in_progress_count
+        - plottable["Abandoned"] = abandoned_count
+        - plottable["Completed"] = completed_count
+        .col-md-6
+          .card
+            .card-header
+              %p.m-0 Incoming Calls
+            .card-body.exotel-stats.p-4
+              .chart-canvas.d-none.d-sm-block
+                = pie_chart(plottable, library: {animation: {easing: 'easeOutQuart'}}, donut: true)
+        .col-md-6
+          .card
+            .card-header
+              %p.m-0 Outgoing Calls
+            .card-body.exotel-stats.p-4
+              .chart-canvas.d-none.d-sm-block
+                - outgoing_plottable = {}
+                - outgoing_calls = @call_logs.not_incoming.completed_calls
+                - outgoing_plottable["Completed"] = outgoing_calls.count
+                = pie_chart(outgoing_plottable, library: {animation: {easing: 'easeOutQuart'}}, donut: true)
+
+      %b Today's Activity
+      %ul#statisticsTab.nav.nav-tabs{:role => "tablist"}
+        %li.nav-item{:role => "presentation"}
+          %a.nav-link.active{"aria-controls" => "incoming-stats", "aria-selected" => "true", "data-toggle" => "tab", :href => "#incoming-stats", :role => "tab"} Incoming Calls
+        %li.nav-item{:role => "presentation"}
+          %a.nav-link{"aria-controls" => "outgoing-stats", "aria-selected" => "false", "data-toggle" => "tab", :href => "#outgoing-stats", :role => "tab"} Outgoing Calls
+      #statisticsTabContent.tab-content
+        #incoming-stats.tab-pane.fade.show.active{"aria-labelledby" => "home-tab", :role => "tabpanel"}
+          .row
+            .col-3
+              = link_to reports_call_report_path(call_direction: "Incoming", todays_calls: true, is_advanced_search: true), target: "_blank", class: 'call-center-fc' do
+                .lead-card-exotel
+                  %h3 Call Volume
+                  - if @call_logs.present?
+                    - call_volume = @call_logs.incoming.todays_calls.count
+                    %span.count.count-spacing-fix
+                      - todays_call_logs = @call_logs.todays_calls.count
+                      - call_valume_percent = (todays_call_logs > 0) ? ((call_volume * 100) / todays_call_logs) : 0
+                      %B= call_volume
+                    .row
+                      - past_call_logs = @call_logs.yesterday_calls.count
+                      - @past_volume_percent = past_call_logs > 0 ? (@call_logs.incoming.yesterday_calls.count * 100) / past_call_logs : 0
+                      .col-6
+                        - a = call_valume_percent - @past_volume_percent
+                        - if @past_volume_percent > 0
+                          - differential = ( a * 100 ) / @past_volume_percent
+                          - if differential >= 0
+                            %div.stats.text-success
+                              %b= differential
+                              %b %
+                          - if differential < 0
+                            %div.stats.text-danger
+                              %b= differential
+                              %b %
+                        -else
+                          %b.stats N/A
+                        %div.stat-title change
+                      .col-6
+                        - if  @call_logs.incoming.yesterday_calls.count > 0
+                          %div.stats
+                            %b= @past_volume_percent
+                            %b %
+                            %b= "(#{past_call_logs})"
+                        - else
+                          .stats
+                            %b N/A
+                        %div.stat-title  prev.day
+                  - else
+                    %b N/A
+            .col-3
+              = link_to reports_call_report_path(is_advanced_search: true, call_direction: "Incoming", todays_calls: true, completed: true), target: "_blank" do
+                .lead-card-exotel
+                  %h3 Completed Calls
+                  - if @call_logs.present?
+                    - @today_completed = @call_logs.incoming.todays_calls.completed_calls.count
+                    - todays_call = @call_logs.todays_calls.count
+                    - todays_incomming = @call_logs.incoming.todays_calls.count
+                    %span.count
+                      - if todays_incomming > 0 && @today_completed > 0
+                        - @completed_percent = (@today_completed * 100 )/ todays_incomming
+                        %b= @completed_percent
+                        %b %
+                        %p= @today_completed
+                      - else
+                        %b N/A
+                    .row
+                      - past_calls_count = @call_logs.incoming.yesterday_calls.count
+                      - past_completed = @call_logs.incoming.yesterday_calls.completed_calls.count
+                      - @past_completed_percent = past_calls_count > 0 ? (past_completed * 100) / past_calls_count : 0
+                      .col-6
+                        - if @today_completed > 0 && past_completed > 0
+                          - b = @completed_percent - @past_completed_percent
+                          - if @past_completed_percent > 0
+                            - differential =( b * 100 ) / @past_completed_percent
+                            - if differential < 0
+                              %div.stats.text-danger
+                                %b= differential
+                                %b %
+                            - if differential >= 0
+                              %div.stats.text-success
+                                %b= differential
+                                %b %
+                          - else
+                            %b N/A
+                        - else
+                          %b.stats.d-block N/A
+                        %div.stat-title change
+                      .col-6
+                        - if past_completed > 0
+                          %div.stat-title
+                            %b= @past_completed_percent
+                            %b %
+                            %b= "(#{past_completed})"
+                        - else
+                          .stats
+                            N/A
+                        %div.stat-title prev.day
+                  - else
+                    %b N/A
+            .col-3
+              = link_to reports_call_report_path(call_direction: "Incoming", todays_calls: true, abandoned_calls: true, is_advanced_search: true), target: "_blank" do
+                .lead-card-exotel
+                  %h3 Abandoned Calls
+                  - if @call_logs.present?
+                    - @abandoned_calls=@call_logs.incoming.todays_calls.abandoned_calls.count
+                    - @past_abandoned_call=@call_logs.incoming.yesterday_calls.abandoned_calls.count
+                    %span.count
+                      - if @abandoned_calls > 0
+                        - todays_call = @call_logs.incoming.todays_calls.count
+                        - if todays_call > 0
+                          - @abandoned_call_percent = (@abandoned_calls * 100) / todays_call
+                          %B= @abandoned_call_percent
+                          %B %
+                          %p= @abandoned_calls
+                        -else
+                          %B N/A
+                      - else
+                        %B N/A
+                    .row
+                      - past_calls = @call_logs.incoming.yesterday_calls.count
+                      - @past_abandoned_call_percent = past_calls >0 ? (@past_abandoned_call * 100) / past_calls : 0
+                      .col-6
+                        - if @abandoned_calls > 0 && @past_abandoned_call > 0
+                          - b = @abandoned_call_percent - @past_abandoned_call_percent
+                          - differential = ((b * 100) / @past_abandoned_call_percent).round
+                          - if differential < 0
+                            %div.stats.text-danger
+                              %b= differential
+                              %b %
+                          - if differential >= 0
+                            %div.stats.text-success
+                              %b= differential
+                              %b %
+                        - else
+                          .stats N/A
+                        %div.stat-title change
+                      .col-6
+                        - if @past_abandoned_call > 0
+                          %div.stats
+                            %b= @past_abandoned_call_percent
+                            %b %
+                            %b= "(#{@past_abandoned_call})"
+                        - else
+                          .stats N/A
+                        %div.stat-title prev.day
+                  - else
+                    %B N/A
+            .col-3
+              = link_to reports_call_report_path(call_direction: "Incoming", todays_calls: true, missed_calls: true, is_advanced_search: true), target: "_blank" do
+                .lead-card-exotel
+                  %h3 Missed Calls
+                  - if @call_logs.present?
+                    - @today_missed_calls = @call_logs.incoming.todays_calls.missed.count
+                    - @past_missed_call = @call_logs.incoming.yesterday_calls.missed.count
+                    %span.count
+                      - if @today_missed_calls > 0
+                        - @today_missed_calls_percent= ((@today_missed_calls * 100) / @call_logs.incoming.todays_calls.count rescue 0)
+                        %b= @today_missed_calls_percent
+                        %b %
+                        %p= @today_missed_calls
+                      - else
+                        %B N/A
+                    .row
+                      - past_calls = @call_logs.incoming.yesterday_calls.count
+                      - @past_missed_call_percent = past_calls > 0 ? (@past_missed_call * 100) / @call_logs.incoming.yesterday_calls.count : 0
+                      .col-6
+                        - if @today_missed_calls > 0 && @past_missed_call_percent > 0
+                          - b = (@today_missed_calls_percent - @past_missed_call_percent)
+                          - differential = ( b * 100 ) / @past_missed_call_percent
+                          - if differential < 0
+                            %div.stats.text-danger
+                              %b= differential
+                              %b %
+                          - if differential >= 0
+                            %div.stats.text-success
+                              %b= differential
+                              %b %
+                        - else
+                          .stats N/A
+                        .stat-title change
+                      .col-6
+                        - if @past_missed_call > 0
+                          .stats
+                            %b= @past_missed_call_percent
+                            %b %
+                            %b= "(#{@past_missed_call})"
+                        - else
+                          .stats N/A
+                        .stat-title prev.day
+                  - else
+                    %b N/A
+            .col-3
+              .lead-card-exotel.disabled
+                %h3 Avg Talk Time
+                - if @call_logs.present?
+                  - @today_duration = @call_logs.incoming.todays_calls.collect{|c| c.duration}
+                  - @past_duration = @call_logs.incoming.yesterday_calls.collect{|c| c.duration}
+                  %span.count.count-spacing-fix
+                    - if !@today_duration.blank?
+                      - avg_duration =  @today_duration.map(&:to_i)
+                      - @avg_today_duration = (avg_duration.inject{ |sum, el| sum + el }.to_f / avg_duration.size).round(2)
+                      %B= @avg_today_duration
+                    - else
+                      %b N/A
+                  .row
+                    - if !@past_duration.blank?
+                      - avg_ =  @past_duration.map(&:to_i)
+                      - @avg_past_duration = (avg_.inject{ |sum, el| sum + el }.to_f / avg_.size).round(2)
+                    - else
+                      - @avg_past_duration = 0
+                    .col-6
+                      - if !@today_duration.blank? && @avg_past_duration > 0
+                        .stats
+                          - b = @avg_today_duration - @avg_past_duration
+                          %b= (((b * 100) / @avg_past_duration).round() rescue 0)
+                          %b %
+                      - else
+                        .stats N/A
+                      .stat-title change
+                    .col-6
+                      - if !@past_duration.blank?
+                        %div(style="text-align:center")
+                          %B= @avg_past_duration
+                      - else
+                        .stats N/A
+                      %div.stat-title prev.day
+                - else
+                  %B N/A
+
+            .col-3
+              .lead-card-exotel.disabled
+                %h3 Avg. Abandoned Calls
+                - if @call_logs.present?
+                  %span.count.count-spacing-fix
+                    - if @abandoned_calls > 0
+                      - @avg_today_abandoned = ((@abandoned_calls.to_f / @call_logs.incoming.todays_calls.count.to_f) rescue 0)
+                      %B= @avg_today_abandoned.round(2)
+                    - else
+                      %b N/A
+                  .row
+                    - @avg_past_abandoned = @call_logs.incoming.yesterday_calls.count > 0 ? (@past_abandoned_call.to_f / @call_logs.incoming.yesterday_calls.count.to_f) : 0
+                    .col-6
+                      - if @abandoned_calls > 0 && @avg_past_abandoned > 0
+                        .stats
+                          - b = @avg_today_abandoned - @avg_past_abandoned
+                          %b= ((( b * 100 ) / @avg_past_abandoned).round() rescue 0)
+                          %b %
+                      - else
+                        .stats N/a
+                      %div.stat-title change
+                    .col-6
+
+                      - if @avg_past_abandoned > 0
+                        .stats
+                          %B= (@avg_past_abandoned).round(2)
+                      - else
+                        .stats N/A
+                      %div.stat-title prev.day
+                - else
+                  %B N/A
+            .col-3
+              .lead-card-exotel.disabled
+                %h3 Avg. Speed of answer
+                - if @call_logs.present?
+                  - @answered_calls=@call_logs.incoming.todays_calls.where("leads_call_logs.other_data->>'status' IN (?)", ['completed','ANSWER'])
+                  - @past_answered_call=@call_logs.incoming.yesterday_calls.where("leads_call_logs.other_data->>'status' IN (?)", ['completed','ANSWER'])
+                  %span.count.count-spacing-fix
+                    - if @answered_calls.count > 0
+                      - @a_sum = 0
+                      - @answered_calls.each do |a|
+                        - @a_sum = @a_sum + (a.start_time.to_time.to_i - a.created_at.to_time.to_i)
+                      - avg_spd_answer = @a_sum / @answered_calls.count
+                      %B= Time.at(avg_spd_answer).utc.strftime("%M:%S")
+                    - else
+                      %b N/A
+                  .row
+                    - @y_sum = 0
+                    - @past_answered_call.each do |a|
+                      - @y_sum = @y_sum + (a.start_time.to_time.to_i - a.created_at.to_time.to_i)
+                    - @past_avg_spd = (@y_sum / @past_answered_call.count rescue 0)
+                    .col-6
+                      - if @answered_calls.present? && @past_answered_call.present?
+                        .stats
+                          - b = (@a_sum - @y_sum)
+                          %b= ((( b * 100 ) / @past_avg_spd).round(2)rescue 0)
+                          %b %
+                      - else
+                        .stats N/a
+                      %div.stat-title change
+                    .col-6
+                      - if @past_answered_call.count > 0
+                        %div(style="text-align:center")
+                          %B= Time.at(@past_avg_spd).utc.strftime("%M:%S")
+                      - else
+                        .stats N/A
+                      %div.stat-title prev.day
+                - else
+                  %b N/A
+        #outgoing-stats.tab-pane.fade{:role => "tabpanel"}
+          .row
+            .col-3
+              = link_to reports_call_report_path(call_direction: "Outgoing", todays_calls: true, is_advanced_search: true), target: "_blank", class: 'call-center-fc' do
+                .lead-card-exotel
+                  %h3 Call Volume
+                  - if @call_logs.present?
+                    - call_volume = @call_logs.not_incoming.todays_calls.count
+                    %span.count.count-spacing-fix
+                      - todays_call_logs = @call_logs.todays_calls.count
+                      - call_valume_percent = (todays_call_logs > 0) ? ((call_volume * 100) / todays_call_logs) : 0
+                      %B= call_volume
+                    .row
+                      - past_call_logs = @call_logs.yesterday_calls.count
+                      - @past_outbound_percent = past_call_logs > 0 ? (@call_logs.not_incoming.yesterday_calls.count * 100) / past_call_logs : 0
+                      .col-6
+                        - a = call_valume_percent - @past_outbound_percent
+                        - if @past_outbound_percent > 0
+                          - differential = ( a * 100 ) / @past_outbound_percent
+                          - if differential >= 0
+                            %div.stats.text-success
+                              %b= differential
+                              %b %
+                          - if differential < 0
+                            %div.stats.text-danger
+                              %b= differential
+                              %b %
+                        -else
+                          %b.stats N/A
+                        %div.stat-title change
+                      .col-6
+                        - if  @call_logs.not_incoming.yesterday_calls.count > 0
+                          %div.stats
+                            %b= @past_outbound_percent
+                            %b %
+                            %b= "(#{past_call_logs})"
+                        - else
+                          .stats
+                            %b N/A
+                        %div.stat-title  prev.day
+                  - else
+                    %b N/A
+            .col-3
+              = link_to reports_call_report_path(is_advanced_search: true, call_direction: "Outgoing", todays_calls: true, completed: true), target: "_blank" do
+                .lead-card-exotel
+                  %h3 Completed Calls
+                  - if @call_logs.present?
+                    - @today_outbound_completed = @call_logs.not_incoming.todays_calls.completed_calls.count
+                    - todays_call = @call_logs.todays_calls.count
+                    - todays_outbound = @call_logs.not_incoming.todays_calls.count
+                    %span.count
+                      - if todays_outbound > 0 && @today_outbound_completed > 0
+                        - @completed_outbound_percent = (@today_outbound_completed * 100 )/ todays_outbound
+                        %b= @completed_outbound_percent
+                        %b %
+                        %p= @today_outbound_completed
+                      - else
+                        %b N/A
+                    .row
+                      - past_calls_count = @call_logs.not_incoming.yesterday_calls.count
+                      - past_completed = @call_logs.not_incoming.yesterday_calls.completed_calls.count
+                      - @past_out_completed_percent = past_calls_count > 0 ? (past_completed * 100) / past_calls_count : 0
+                      .col-6
+                        - if @today_outbound_completed > 0 && past_completed > 0
+                          - b = @completed_outbound_percent - @past_out_completed_percent
+                          - if @past_out_completed_percent > 0
+                            - differential =( b * 100 ) / @past_out_completed_percent
+                            - if differential < 0
+                              %div.stats.text-danger
+                                %b= differential
+                                %b %
+                            - if differential >= 0
+                              %div.stats.text-success
+                                %b= differential
+                                %b %
+                          - else
+                            %b N/A
+                        - else
+                          %b.stats.d-block N/A
+                        %div.stat-title change
+                      .col-6
+                        - if past_completed > 0
+                          %div.stat-title
+                            %b= @past_out_completed_percent
+                            %b %
+                            %b= "(#{past_completed})"
+                        - else
+                          .stats
+                            N/A
+                        %div.stat-title prev.day
+                  - else
+                    %b N/A
+            .col-3
+              = link_to reports_call_report_path(call_direction: "Outgoing", todays_calls: true, abandoned_calls: true, is_advanced_search: true), target: "_blank" do
+                .lead-card-exotel
+                  %h3 Abandoned Calls
+                  - if @call_logs.present?
+                    - @abandoned_outbound_calls=@call_logs.not_incoming.todays_calls.abandoned_calls.count
+                    - @past_abandoned_out_call=@call_logs.not_incoming.yesterday_calls.abandoned_calls.count
+                    %span.count
+                      - if @abandoned_outbound_calls > 0
+                        - todays_call = @call_logs.not_incoming.todays_calls.count
+                        - if todays_call > 0
+                          - @abandoned_out_call_percent = (@abandoned_outbound_calls * 100) / todays_call
+                          %B= @abandoned_out_call_percent
+                          %B %
+                          %p= @abandoned_outbound_calls
+                        -else
+                          %B N/A
+                      - else
+                        %B N/A
+                    .row
+                      - past_calls = @call_logs.not_incoming.yesterday_calls.count
+                      - @past_abandoned_out_call_percent = past_calls >0 ? (@past_abandoned_out_call * 100) / past_calls : 0
+                      .col-6
+                        - if @abandoned_outbound_calls > 0 && @past_abandoned_out_call > 0
+                          - b = @abandoned_out_call_percent - @past_abandoned_out_call_percent
+                          - differential = ((b * 100) / @past_abandoned_out_call_percent).round
+                          - if differential < 0
+                            %div.stats.text-danger
+                              %b= differential
+                              %b %
+                          - if differential >= 0
+                            %div.stats.text-success
+                              %b= differential
+                              %b %
+                        - else
+                          .stats N/A
+                        %div.stat-title change
+                      .col-6
+                        - if @past_abandoned_out_call > 0
+                          %div.stats
+                            %b= @past_abandoned_out_call_percent
+                            %b %
+                            %b= "(#{@past_abandoned_out_call})"
+                        - else
+                          .stats N/A
+                        %div.stat-title prev.day
+                  - else
+                    %B N/A
+            .col-3
+              = link_to reports_call_report_path(call_direction: "Outgoing", todays_calls: true, missed_calls: true, is_advanced_search: true), target: "_blank" do
+                .lead-card-exotel
+                  %h3 Missed Calls
+                  - if @call_logs.present?
+                    - today_missed_calls = @call_logs.not_incoming.todays_calls.missed.count
+                    - past_missed_call = @call_logs.not_incoming.yesterday_calls.missed.count
+                    %span.count
+                      - if today_missed_calls > 0
+                        - @today_outbound_missed_percent= ((today_missed_calls * 100) / @call_logs.not_incoming.todays_calls.count rescue 0)
+                        %b= @today_outbound_missed_percent
+                        %b %
+                        %p= today_missed_calls
+                      - else
+                        %B N/A
+                    .row
+                      - past_calls = @call_logs.not_incoming.yesterday_calls.count
+                      - @past_outbound_missed_percent = past_calls > 0 ? (past_missed_call * 100) / @call_logs.not_incoming.yesterday_calls.count : 0
+                      .col-6
+                        - if today_missed_calls > 0 && @past_outbound_missed_percent > 0
+                          - b = (@today_outbound_missed_percent - @past_outbound_missed_percent)
+                          - differential = ( b * 100 ) / @past_outbound_missed_percent
+                          - if differential < 0
+                            %div.stats.text-danger
+                              %b= differential
+                              %b %
+                          - if differential >= 0
+                            %div.stats.text-success
+                              %b= differential
+                              %b %
+                        - else
+                          .stats N/A
+                        .stat-title change
+                      .col-6
+                        - if past_missed_call > 0
+                          .stats
+                            %b= @past_outbound_missed_percent
+                            %b %
+                            %b= "(#{past_missed_call})"
+                        - else
+                          .stats N/A
+                        .stat-title prev.day
+                  - else
+                    %b N/A
+            .col-3
+              .lead-card-exotel.disabled
+                %h3 Avg Talk Time
+                - if @call_logs.present?
+                  - today_duration = @call_logs.not_incoming.todays_calls.collect{|c| c.duration}
+                  - past_duration = @call_logs.not_incoming.yesterday_calls.collect{|c| c.duration}
+                  %span.count.count-spacing-fix
+                    - if !today_duration.blank?
+                      - avg_duration =  today_duration.map(&:to_i)
+                      - @avg_today_outbound_duration = (avg_duration.inject{ |sum, el| sum + el }.to_f / avg_duration.size).round(2)
+                      %B= @avg_today_outbound_duration
+                    - else
+                      %b N/A
+                  .row
+                    - if !past_duration.blank?
+                      - avg_ =  past_duration.map(&:to_i)
+                      - @avg_past_outbound_duration = (avg_.inject{ |sum, el| sum + el }.to_f / avg_.size).round(2)
+                    - else
+                      - @avg_past_outbound_duration = 0
+                    .col-6
+                      - if !today_duration.blank? && @avg_past_outbound_duration > 0
+                        .stats
+                          - b = @avg_today_outbound_duration - @avg_past_outbound_duration
+                          %b= (((b * 100) / @avg_past_outbound_duration).round() rescue 0)
+                          %b %
+                      - else
+                        .stats N/A
+                      .stat-title change
+                    .col-6
+                      - if !past_duration.blank?
+                        %div(style="text-align:center")
+                          %B= @avg_past_outbound_duration
+                      - else
+                        .stats N/A
+                      %div.stat-title prev.day
+                - else
+                  %B N/A
+            .col-3
+              .lead-card-exotel.disabled
+                %h3 Avg. Abandoned Calls
+                - if @call_logs.present?
+                  %span.count.count-spacing-fix
+                    - if @abandoned_outbound_calls > 0
+                      - avg_today_abandoned = ((@abandoned_outbound_calls.to_f / @call_logs.not_incoming.todays_calls.count.to_f) rescue 0)
+                      %B= avg_today_abandoned.round(2)
+                    - else
+                      %b N/A
+                  .row
+                    - avg_past_abandoned = @call_logs.not_incoming.yesterday_calls.count > 0 ? (@past_abandoned_out_call.to_f / @call_logs.not_incoming.yesterday_calls.count.to_f) : 0
+                    .col-6
+                      - if @abandoned_outbound_calls > 0 && avg_past_abandoned > 0
+                        .stats
+                          - b = avg_today_abandoned - avg_past_abandoned
+                          %b= ((( b * 100 ) / avg_past_abandoned).round() rescue 0)
+                          %b %
+                      - else
+                        .stats N/a
+                      %div.stat-title change
+                    .col-6
+
+                      - if avg_past_abandoned > 0
+                        .stats
+                          %B= (avg_past_abandoned).round(2)
+                      - else
+                        .stats N/A
+                      %div.stat-title prev.day
+                - else
+                  %B N/A
+            .col-3
+              .lead-card-exotel.disabled
+                %h3 Avg. Speed of answer
+                - if @call_logs.present?
+                  - answered_calls=@call_logs.not_incoming.todays_calls.where("leads_call_logs.other_data->>'status' IN (?)", ['completed','ANSWER'])
+                  - past_answered_call=@call_logs.not_incoming.yesterday_calls.where("leads_call_logs.other_data->>'status' IN (?)", ['completed','ANSWER'])
+                  %span.count.count-spacing-fix
+                    - if answered_calls.count > 0
+                      - @ans_sum = 0
+                      - answered_calls.each do |a|
+                        - @ans_sum = @ans_sum + (a.start_time.to_time.to_i - a.created_at.to_time.to_i)
+                      - avg_spd_answer = @ans_sum / answered_calls.count
+                      %B= Time.at(avg_spd_answer).utc.strftime("%M:%S")
+                    - else
+                      %b N/A
+                  .row
+                    - @yst_sum = 0
+                    - past_answered_call.each do |a|
+                      - @yst_sum = @yst_sum + (a.start_time.to_time.to_i - a.created_at.to_time.to_i)
+                    - past_avg_spd = (@yst_sum / past_answered_call.count rescue 0)
+                    .col-6
+                      - if answered_calls.present? && past_answered_call.present?
+                        .stats
+                          - b = (@ans_sum - @yst_sum)
+                          %b= ((( b * 100 ) / past_avg_spd).round(2)rescue 0)
+                          %b %
+                      - else
+                        .stats N/a
+                      %div.stat-title change
+                    .col-6
+                      - if past_answered_call.count > 0
+                        %div(style="text-align:center")
+                          %B= Time.at(past_avg_spd).utc.strftime("%M:%S")
+                      - else
+                        .stats N/A
+                      %div.stat-title prev.day
+                - else
+                  %b N/A

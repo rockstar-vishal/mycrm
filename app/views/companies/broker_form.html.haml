@@ -1,0 +1,35 @@
+.content-wrapper
+  .content
+    .container-fluid
+      .row
+        .col-lg-12
+          .card
+            .card-header
+              %h4.mb-0#newFormTitle Edit Broker Form For #{@company.name}
+            .card-body
+              = bootstrap_form_for(@company) do |f|
+                - if @company.errors.any?
+                  #error_explanation
+                    %h2
+                      = pluralize(@company.errors.count, "error")
+                      prohibited this property configuration from being saved:
+                    %ul
+                      - @company.errors.full_messages.each do |message|
+                        %li= message
+                = f.fields_for :broker_configuration do |pc|
+                  .row
+                    .col-md-6
+                      .form-group
+                        = pc.select :required_fields, options_for_select((::Company.broker_required_options).map{|k| [k.humanize, k]}, pc.object&.required_fields),{}, {class: "form-control multiselect", multiple: true}
+                  .row
+                    %div{align: "center"}
+                      .col-md-12
+                        .form-group
+                          = button_tag type: "submit", class: "btn btn-primary", data: {disable_with: "Please Wait..."} do
+                            = fa_icon "floppy-o"
+                            Save
+                          = link_to companies_path, class: "btn btn-danger" do
+                            = fa_icon "close"
+                            Cancel
+:javascript
+  $('.multiselect').multiSelect();

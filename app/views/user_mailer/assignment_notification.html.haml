@@ -1,0 +1,49 @@
+!!!
+%html
+  %head
+    %meta{:content => "text/html; charset=UTF-8", "http-equiv" => "Content-Type"}/
+    %title #{@lead.company.name}
+    :css
+      @import url('https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap');
+          @media screen and (max-width: 400px) {
+          .deviceWidth{
+            width: 100%;
+            padding: 20px;
+          }
+        }
+  %body{:style => "background: #FAFAFA; padding: 30px 10px"}
+    .deviceWidth{:style => "width: 680px;background: #FFF;font-family: 'Roboto', Arial, sans-serif; padding: 30px 0 0; margin:0 auto; border-radius: 12px;"}
+      %table{:align => "center", :border => "0", :cellpadding => "0", :cellspacing => "0", :style => "font-family: 'Roboto', Arial, sans-serif;line-height: 28px; background: #fff; border-radius: 12px", :width => "100%"}
+        %tbody
+          %tr
+            %td
+              %table{:border => "0", :cellpadding => "0", :cellspacing => "0", :style => "border:1px solid #E5E5E5; margin:60px auto 50px; border-radius: 4px; max-width: 100%; min-width: 300px;"}
+                %thead
+                  %tr
+                    %th{:style => "color: #000000;opacity: 0.5;font-size: 12px;background: #EEEEEE;border: 1px solid #BBBBBB;border-radius: 4px 0px 0px 0px;margin:0; padding:7px 10px; text-align:left;border-right:none;font-weight: normal; line-height: initial;"} Client Name
+                    %th{:style => "color: #000000;opacity: 0.5;font-size: 12px;background: #EEEEEE;border: 1px solid #BBBBBB;border-radius: 0;margin:0; padding:7px 10px; text-align:left;border-right:none; font-weight: normal;line-height: initial;"} Project Name
+                    %th{:style => "color: #000000;opacity: 0.5;font-size: 12px;background: #EEEEEE;border: 1px solid #BBBBBB;border-radius: 0;margin:0; padding:7px 10px; text-align:left;border-right:none;font-weight: normal;line-height: initial;"} Lead Status
+                    %th{:style => "color: #000000;opacity: 0.5;font-size: 12px;background: #EEEEEE;border: 1px solid #BBBBBB;border-radius: 0;margin:0; padding:7px 10px; text-align:left;border-right:none;font-weight: normal;line-height: initial;"} Next Call Details
+                    %th{:style => "color: #000000;opacity: 0.5;font-size: 12px;background: #EEEEEE;border: 1px solid #BBBBBB;border-radius: 0;margin:0; padding:7px 10px; text-align:left;font-weight: normal;line-height: initial;"} Comments
+                    %th{:style => "color: #000000;opacity: 0.5;font-size: 12px;background: #EEEEEE;border: 1px solid #BBBBBB;border-radius: 0;margin:0; padding:7px 10px; text-align:left;font-weight: normal;line-height: initial;"} View
+                  %tr
+                    %td{:style => "padding:7px 10px; border-bottom:1px solid #E5E5E5;"}
+                      %span{:style => "font-weight: 500;font-size: 12px;color: #000;line-height: initial;"} #{@lead.name}
+                    %td{:style => "padding:7px 10px; border-bottom:1px solid #E5E5E5;border-left: 1px solid #E5E5E5"}
+                      %span{:style => "font-weight: 500;font-size: 12px;color: #000;line-height: initial;"} #{@lead.project_name}
+                    %td{:style => "padding:7px 10px; border-bottom:1px solid #E5E5E5;border-left: 1px solid #E5E5E5"}
+                      %span{:style => "font-weight: 500;font-size: 12px;color: #000;line-height: initial;"} #{@lead.status.name}
+                    %td{:style => "padding:7px 10px; border-bottom:1px solid #E5E5E5;border-left: 1px solid #E5E5E5"}
+                      %span{:style => "font-weight: 500;font-size: 12px;color: #000;line-height: initial;"} #{@lead.ncd&.strftime('%d-%m-%y')}
+                    %td{:style => "padding:7px 10px; border-bottom:1px solid #E5E5E5;border-left: 1px solid #E5E5E5"}
+                      %span{:style => "font-weight: 500;font-size: 12px;color: #000;line-height: initial;"} #{@lead.comment}
+                    %td{:style => "padding:7px 10px; border-bottom:1px solid #E5E5E5;border-left: 1px solid #E5E5E5"}
+                      = link_to 'view', "http://#{@lead.company.domain}/leads/#{@lead.id}/edit"
+
+  %div{:style => "padding: 30px 70px 0; margin:0; text-align: center; line-height: 28px;"}
+    %img{:alt => "", :src => "#{@lead.company.logo&.url(:small)}", :style => "display: table; margin:15px auto 30px; max-width: 200px; max-height: 100px;"}/
+    %p{:style => "color: #BBBBBB; font-size: 12px; margin:0 0 20px;font-family: 'Roboto', Arial, sans-serif;"}
+      Copyright © 2022
+      %a{:href => "https://#{@lead.company.domain}", :style => "color: #BBBBBB; font-size: 12px;text-align: center; text-decoration: none", :target => "_blank"} #{@lead.company.domain}
+      All Right Reserved
+

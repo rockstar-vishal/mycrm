@@ -1,0 +1,27 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  name: MyString
+  description: MyText
+  domain: MyString
+  sms_mask: MyString
+  dead_status_id: 1
+  expected_site_visit_id: 1
+  booking_done_id: 1
+  popup_fields: 
+  allowed_fields: 
+  index_fields: 
+  rejection_reasons: MyText
+
+two:
+  name: MyString
+  description: MyText
+  domain: MyString
+  sms_mask: MyString
+  dead_status_id: 1
+  expected_site_visit_id: 1
+  booking_done_id: 1
+  popup_fields: 
+  allowed_fields: 
+  index_fields: 
+  rejection_reasons: MyText

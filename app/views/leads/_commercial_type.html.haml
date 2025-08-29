@@ -1,0 +1,25 @@
+.col-md-3
+  = f.select :property_type, options_for_select(Lead::COMMERCIAL_PROPERTY_TYPES, f.object.property_type), {:prompt=>true}
+.col-md-3
+  = f.number_field :plot_area_from, class: "form-control"
+.col-md-3
+  = f.number_field :plot_area_to, class: "form-control"
+.col-md-3
+  = f.select :area_unit, options_for_select(Lead::UNITS, f.object.area_unit),{:prompt=>true, label: "Unit"}
+.col-md-3
+  = f.text_field :purpose_comment, class: "form-control", label: "Comment"
+.col-md-3
+  = f.select :is_attached_toilet, options_for_select([["Yes", true],["No", false]], f.object.is_attached_toilet),{prompt: 'Please Select', label: "Attached Toilet"}
+.col-md-3
+  = f.select :purpose, options_for_select(Lead::PURPOSE, f.object.purpose), {prompt: true}
+:javascript
+  $("#lead_commercial_type_attributes_property_type").change(function(){
+    var type_val = $(this).val();
+    if(type_val === "Plot"){
+      $("#plot_unit").show();
+      $("#other_unit").hide();
+    }else{
+      $("#plot_unit").hide();
+      $("#other_unit").show();
+    }
+  })

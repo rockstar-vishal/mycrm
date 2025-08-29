@@ -1,0 +1,38 @@
+.modal-header
+  %h5.modal-title Create Loan #{@lead.name}
+  %button.close{"aria-label" => "Close", "data-dismiss" => "modal", :type => "button"}
+    %span{"aria-hidden" => "true"} ×
+.modal-body
+  = bootstrap_form_for @loan, url: create_loan_lead_path(@lead), remote: true do |f|
+    - if @lead.errors.any?
+      #error_explanation
+        %h2
+          = pluralize(@lead.errors.count, "error")
+          prohibited this Lead from being saved:
+        %ul
+          - @lead.errors.full_messages.each do |message|
+            %li= message
+    .row
+      - users = @company.users.loan_enabled
+      .col-md-6{class: ("required")}
+        .form-group
+          = f.select :user_id, options_from_collection_for_select(users.order('name'), :id, :name, (@loan.user_id || nil)), {prompt: true, label: 'Assign To'}, class: 'form-control', required: true
+      .col-md-6#ncd
+        .form-group
+          = f.text_field :ncd, :value=>(Time.zone.parse(@loan.ncd.to_s).to_s rescue nil), class: "form-control datetimepickerncd_modal", placeholder: "Next Call Date", label: "Next Call Date"
+
+    .w-100
+      .form-group.col-md-12
+        %span.lead-title Comment
+        %span.lead-info
+          = f.object.comment&.gsub(/\n/, '<br/>')&.html_safe
+          = f.text_area :comment, class: "form-control", value: '', placeholder: "Comment", rows: "4", hide_label: true
+    %div
+      .col-md-12
+        .form-group
+          = button_tag type: "submit", class: "btn btn-primary", data: {disable_with: "Please Wait..."} do
+            = fa_icon "floppy-o"
+            Save
+          = link_to :back, class: "btn btn-danger" do
+            = fa_icon "close"
+            Cancel

@@ -1,0 +1,15 @@
+.row
+  .col-md-6
+    .form-group
+      = label_tag :booking_date_from, 'Booking From ', class: 'control-label'
+      .input-group
+        %span.input-group-addon
+          = fa_icon 'calendar'
+        = text_field_tag :booking_date_from, (params[:booking_date_from].to_date rescue nil), class: 'form-control dateFormat pull-right'
+  .col-md-6
+    .form-group
+      = label_tag :booking_date_to, 'Booking Upto', class: 'control-label'
+      .input-group
+        %span.input-group-addon
+          = fa_icon 'calendar'
+        = text_field_tag :booking_date_to, (params[:booking_date_to].to_date rescue nil), class: 'form-control dateFormat pull-right'

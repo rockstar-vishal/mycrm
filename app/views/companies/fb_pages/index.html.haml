@@ -1,0 +1,96 @@
+.content-wrapper
+  .content-header
+    .container-fluid
+      .row.mb-2
+        .col-sm-12
+          %ol.breadcrumb
+            %li.breadcrumb-item
+              %a{:href => "/"} Home
+            %li.breadcrumb-item.active Fb Pages
+        .col-sm-12
+          %h1.m-0.text-dark Fb Pages
+  .content
+    .container-fluid
+      .row
+        .col-lg-12
+          .card
+            .card-header
+              = button_tag "Re-Load From Facebook", id: "fb-login", class: 'loginBtn loginBtn--facebook', style: "color:white;"
+            .card-body
+              %table.table
+                %thead
+                  %tr
+                    %th Page FB ID
+                    %th Page
+                    %th Forms
+                %tbody
+                  - @fb_pages.each do |page|
+                    %tr
+                      %td
+                        = page.page_fbid
+                      %td
+                        = page.title
+                      %td
+                        = link_to fb_forms_companies_fb_page_path(page.page_fbid), class: "btn btn-primary", style: "padding: 4px 8px; width: auto;" do
+                          View
+
+%script{:src => "https://connect.facebook.net/en_US/sdk.js", :crossorigin=>"anonymous", :defer=>true, :async=>true}
+
+:javascript
+  window.fbAsyncInit = function() {
+    FB.init({
+      appId            : '1291078614793666',
+      autoLogAppEvents : true,
+      xfbml            : true,
+      version          : 'v10.0'
+    });
+  };
+
+  let subscribeApp = function(pageId, pageAccessToken){
+    FB.api(
+      '/' + pageId + '/subscribed_apps',
+      'post',
+      {access_token: pageAccessToken, subscribed_fields: ['leadgen']},
+      function(response) {
+        console.log('Successfully subscribed page', response);
+      }
+    );
+  }
+
+  function createPages(response){
+    let errors = []
+    if(response.data){
+      let pages = response.data;
+      pages.forEach(page => {
+        subscribeApp(page.id, page.access_token);
+        $.post(
+          '/companies/fb_pages',
+          page,
+          function(res){
+            errors.push(res.error_message);
+          });
+      });
+      alert(`Errors: ${errors.join(', ') || 'None'}`);
+    }else{
+      alert(`Something Went Wrong. Please Try Again. ${response.error.message}`)
+    }
+  }
+
+  function fetchFbPages(url){
+    FB.api(url, function(response) {
+      console.log('Api Response: ', response);
+      createPages(response);
+      nextPageURL = response.paging.next
+      console.log(nextPageURL);
+      if(nextPageURL){
+        fetchFbPages(nextPageURL)
+      }
+    });
+  }
+
+  $("#fb-login").on("click", function(e){
+    FB.login(function(response){
+      var url = "/me/accounts"
+      fetchFbPages(url);
+    }, {scope: ['pages_show_list', 'leads_retrieval', 'pages_manage_metadata', 'pages_manage_ads', 'pages_read_engagement', 'leads_retrieval', 'ads_management']});
+  });

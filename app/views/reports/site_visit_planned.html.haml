@@ -1,0 +1,108 @@
+.content-wrapper
+  .content-header
+    .container-fluid
+      .row.mb-2
+        .col-md-8
+          %ol.breadcrumb
+            %li.breadcrumb-item
+              %a{:href => "/"} Home
+            %li.breadcrumb-item.active Scheduled Visit Planned Report
+          %h1.m-0.text-dark Scheduled Visit Planned Report
+        .col-md-4.text-right
+          .lead-card.elevation-3
+            %h5
+              Visited
+              = link_to leads_path({visited: true, site_visit_from: @start_date.to_date, site_visit_upto: @end_date.to_date, is_advanced_search: true}.merge!(params)), target: "_blank" do
+                %span.align-fix
+                  = @leads.joins{visits}.uniq.count
+  .content
+    .container-fluid
+      .row
+        .col-lg-12
+          .card
+            .card-header
+              .pull-right
+                %a#adv-search{:href => "javascript:void(0);", :style => "margin-left:-2px;", :class=>"btn btn-primary btn-sm"}
+                  Advanced Search
+                  %i.fa.fa-angle-down
+              = link_to params.except(:action, :controller).merge!(format: :csv), class: "btn btn-primary btn-sm", style: "right: 5px;" do
+                = fa_icon "download"
+                Export
+              = link_to params.except(:action, :controller).merge!(calender_view: true), class: "btn btn-primary btn-sm", style: "right: 5px;" do
+                = fa_icon "calendar"
+                Calender View
+            #adv-searchbox.box-body
+              = form_tag nil, method: :get, class: "filter-search-menu" do
+                .card-header
+                  .custom-search
+                    .row
+                      .col-md-12
+                        .row
+                          .col-md-3
+                            .form-group
+                              = label_tag :display_from, 'Scheduled From ', class: 'control-label'
+                              .input-group
+                                %span.input-group-addon
+                                  = fa_icon 'calendar'
+                                = text_field_tag :start_date, (@start_date.to_date rescue nil), class: 'form-control dateFormat pull-right', required: true
+                          .col-md-3
+                            .form-group
+                              = label_tag :display_upto, 'Scheduled Upto', class: 'control-label'
+                              .input-group
+                                %span.input-group-addon
+                                  = fa_icon 'calendar'
+                                = text_field_tag :end_date, (@end_date.to_date rescue nil), class: 'form-control dateFormat pull-right', required: true
+                          .col-md-3
+                            = render partial: 'shared/projects_filter'
+                          .col-md-3
+                            = render partial: 'shared/managers_filter'
+                          .col-md-2
+                            .form-group.selct-check.mt-35
+                              = label_tag "Visited"
+                              = check_box_tag 'visited', true, (params[:visited] == "true")
+                      .col-md-3
+                        .form-group
+                          %label.label-block &nbsp;
+                          = button_tag type: "submit", class: "btn btn-primary btn-sm pd-fixes align-fixes" do
+                            = fa_icon "search"
+                          = link_to nil, class: "btn btn-primary btn-sm pd-fixes align-fixes" do
+                            = fa_icon "refresh"
+            .card-body
+              .table-responsive
+                %table.table.table-bordered.table-hover.table-sm.responsive.nowrap.tablesorter{style: 'width:100%!important'}
+                  %thead
+                    %tr
+                      %th Name
+                      %th.sorter-false
+                        - if params["sort"].present? and params["sort"] == "desc"
+                          = link_to params.merge(key: "tentative_visit_planned", sort: "asc"), class: "lead-collapse", "aria-controls" => "collapseOne", role: "button" do
+                            Scheduled Date
+                        - else
+                          = link_to params.merge(key: "tentative_visit_planned", sort: "desc"), class: "lead-collapse", "aria-controls" => "collapseOne", role: "button" do
+                            Scheduled Date
+                      %th Day
+                      %th Time
+                      %th Assigned To
+                      %th Project
+                      %th Description
+                      %th Action
+                  %tbody
+                    - @leads.each do |lead|
+                      %tr
+                        %td= link_to lead.name, lead_path(lead), remote: true
+                        %td=lead.tentative_visit_planned.strftime("%d-%m-%Y")
+                        %td=lead.tentative_visit_planned.strftime("%A")
+                        %td=lead.tentative_visit_planned.strftime("%H:%M")
+                        %td=lead.user.name rescue ''
+                        %td=lead.project.name
+                        %td.showmore= lead.comment.strip.gsub(/\n/, '<br/>').html_safe rescue ""
+                        %td
+                          = link_to edit_lead_path(lead), remote: true, class: "btn btn-primary m-r-5", style: "padding: 4px 8px; width: auto; border-radius: 50%!important;" do
+                            = fa_icon "pencil"
+              - if @leads.present?
+                = will_paginate @leads, class: "ct-pag"
+
+:css
+  th a {
+    color:#fff;
+  }

@@ -1,0 +1,37 @@
+= bootstrap_form_for @call_in, url: (@call_in.new_record? ? call_ins_path : call_in_path(@call_in.uuid)),remote: true do |f|
+  - if @call_in.errors.any?
+    #error_explanation
+      %h2
+        = pluralize(@call_in.errors.count, "error")
+        prohibited this Number from being saved:
+      %ul
+        - @call_in.errors.full_messages.each do |message|
+          %li= message
+  - if current_user.is_sysad?
+    .row
+      .col-md-5.required
+        .form-group
+          = f.text_field :number, class: "form-control", placeholder: "Number"
+      .col-md-5
+        .form-group
+          = f.select :company_id, options_from_collection_for_select(::Company.active, :id, :name, @call_in.company_id), {prompt: "Please Select", label: "Select Company"}, class: 'form-control'
+      .col-md-2
+        .form-group
+          = f.check_box :active, class: 'form-control'
+  - else
+    .row
+      .col-md-4
+        = f.select :project_id, options_from_collection_for_select(current_user.company.projects, :id, :name, @call_in.project_id), {prompt: "Please Select", label: "Select Project"}, class: 'form-control'
+      .col-md-4
+        = f.select :user_id, options_from_collection_for_select(current_user.manageables, :id, :name, @call_in.user_id), {prompt: "Please Select", label: "Select User"}, class: 'form-control'
+      .col-md-4
+        = f.text_field :source_name, class: "form-control", placeholder: "Source Name"
+  %div{align: "center"}
+    .col-md-12
+      .form-group
+        = button_tag type: "submit", class: "btn btn-primary", data: {disable_with: "Please Wait..."} do
+          = fa_icon "floppy-o"
+          Save
+        = link_to call_ins_path, class: "btn btn-danger" do
+          = fa_icon "close"
+          Cancel

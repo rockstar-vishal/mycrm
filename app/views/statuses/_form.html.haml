@@ -1,0 +1,25 @@
+= bootstrap_form_for @status, remote: true do |f|
+  - if @status.errors.any?
+    #error_explanation
+      %h2
+        = pluralize(@status.errors.count, "error")
+        prohibited this Status from being saved:
+      %ul
+        - @status.errors.full_messages.each do |message|
+          %li= message
+  .row
+    .col-md-6
+      .form-group
+        = f.text_field :name, class: "form-control", placeholder: "Enquiry status"
+    .col-md-6
+      .form-group
+        = f.text_field :class_name, class: "form-control", placeholder: "Class Name"
+  %div{align: "center"}
+    .col-md-12
+      .form-group
+        = button_tag type: "submit", class: "btn btn-primary", data: {disable_with: "Please Wait..."} do
+          = fa_icon "floppy-o"
+          Save
+        = link_to statuses_path, class: "btn btn-danger" do
+          = fa_icon "close"
+          Cancel

@@ -1,0 +1,85 @@
+.content-wrapper
+  .content-header
+    .container-fluid
+      .row.mb-2
+        .col-md-9
+          %ol.breadcrumb
+            %li.breadcrumb-item
+              %a{:href => "/"} Home
+            %li.breadcrumb-item.active Backlog Report
+          %h1.m-0.text-dark Backlog Report
+  .content
+    .container-fluid
+      .row
+        .col-lg-12
+          .card
+            .card-header
+              .pull-right
+                %a#adv-search{:href => "javascript:void(0);", :style => "margin-left:-2px;", :class=>"btn btn-primary btn-sm"}
+                  Advanced Search
+                  %i.fa.fa-angle-down
+              = link_to params.except(:action, :controller).merge!(format: :csv), class: "btn btn-primary btn-sm", style: "right: 5px;" do
+                = fa_icon "download"
+                Export
+              = render 'reports_button', locals: {report_name: :backlog}
+            #adv-searchbox.box-body
+              = form_tag nil, method: :get, class: "filter-search-menu" do
+                .card-header
+                  .custom-search
+                    .row
+                      .col-md-6
+                        = render partial: 'shared/date_range_display'
+                      .col-md-3
+                        = render partial: 'shared/projects_filter'
+                      .col-md-3
+                        = render partial: 'shared/users_filter'
+                      .col-md-3
+                        = render partial: 'shared/managers_filter'
+                      - if current_user.company.is_allowed_field?("customer_type")
+                        .col-md-3
+                          = render partial: 'shared/customer_type_filter'
+                      .col-md-3
+                        .form-group
+                          %label.label-block &nbsp;
+                          = button_tag type: "submit", class: "btn btn-primary btn-sm pd-fixes align-fixes" do
+                            = fa_icon "search"
+                          = link_to nil, class: "btn btn-primary btn-sm pd-fixes align-fixes" do
+                            = fa_icon "refresh"
+            .card-body
+              - plottable = {}
+              .table-responsive
+                %table.table.table-bordered.table-hover.dataTables.table-sm.responsive.nowrap{style: 'width:100%!important'}
+                  %thead
+                    %tr
+                      %th.all User
+                      %th.all Total
+                      - @statuses.uniq.each do |status|
+                        %th.desktop= status.name
+                  %tbody
+                    - @users.each do |user|
+                      - this_user_data = @data.select{|k| k["user_id"] == user.id}
+                      - user_total = (this_user_data.map{|k| k["lead_ids"].count}.sum rescue 0)
+                      - plottable[user.name] = user_total
+                      %tr
+                        %td= user.name
+                        %td
+                          = link_to bl_path(:assigned_to=>[user.id]), target: "_blank" do
+                            = user_total
+                        - @statuses.uniq.each do |status|
+                          - this_status_data = this_user_data.detect{|k| k["status_id"] == status.id}
+                          %td
+                            = link_to bl_path(:assigned_to=>[user.id], :lead_statuses=>[status.id]), target: "_blank" do
+                              = this_status_data["lead_ids"].count rescue 0
+                  - if @data.present?
+                    %tbody
+                      %tr
+                        %td Total
+                        %td
+                          = link_to bl_path(:assigned_to=> [@users.ids]), target: "_blank" do
+                            = @data.map{|k| k["lead_ids"].count}.sum rescue 0
+                        - @statuses.uniq.each do |status|
+                          %td
+                            = link_to bl_path(:assigned_to=>[@users.ids], :lead_statuses=>[status.id]), target: "_blank" do
+                              = @data.collect{|k| k["lead_ids"].count if k["status_id"] == status.id}.compact.sum rescue 0
+              .chart-canvas.d-none.d-sm-block.pieChart
+                = pie_chart(plottable, library: {animation: {easing: 'easeOutQuart'}})

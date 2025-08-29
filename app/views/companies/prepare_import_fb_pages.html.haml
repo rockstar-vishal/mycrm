@@ -1,0 +1,31 @@
+.content-wrapper
+  .content-header
+    .container-fluid
+      .row.mb-2
+        .col-sm-12
+          %ol.breadcrumb
+            %li.breadcrumb-item
+              %a{:href => "/"} Home
+            %li.breadcrumb-item.active Import FB Pages
+        .col-sm-12
+          %h1.m-0.text-dark FB Pages
+  .content
+    .container-fluid
+      .row
+        .col-lg-12
+          .card
+            .card-header
+              %h3 Import FB Pages
+            .card-body
+              = form_tag nil, method: :post, multipart: true, class: 'form-inline' do
+                .row
+                  .form-group.col-md-12
+                    .form-group.col-md-12.mb-3.p-0
+                      .input-group
+                        .custom-file
+                          = file_field_tag :lead_file, accept: 'text/csv', :class=>"custom-file-input", :required=>true
+                          %label.custom-file-label{:for => "inputGroupFile04"} Choose file
+                        .input-group-append
+                          = button_tag type: "submit", class: 'btn btn-warning btn-sm', data: { disable_with: 'Please wait...' } do
+                            = fa_icon "upload"
+                            Upload

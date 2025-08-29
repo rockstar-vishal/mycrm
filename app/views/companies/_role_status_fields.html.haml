@@ -1,0 +1,14 @@
+.nested-fields.col-md-4{:style => "border: 1px dashed #999; border-radius: 5px; padding: 20px;"}
+  .form-group.required
+    = f.select :role_id, options_from_collection_for_select(Role.all, :id, :name, f.object.role_id), {prompt: "Please Select", label: "Select Role"}, class: 'form-control'
+  .form-group.required.ch-select
+    = f.select :status_ids, options_from_collection_for_select(@company.statuses.latest_first, :id, :name, f.object.status_ids), {label: "Select Status"}, {multiple: true, class: 'form-control chosen-select'}
+  %center
+    = link_to_remove_association "Remove", f, :class=>"btn btn-danger"
+
+:javascript
+  $('.chosen-select').chosen({
+    allow_single_deselect: true,
+    no_results_text: 'No results matched',
+    width: 'auto'
+  });

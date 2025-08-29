@@ -1,0 +1,32 @@
+.modal-header
+  %h5.modal-title
+    Notification Template
+  %button.close{"aria-label" => "Close", "data-dismiss" => "modal", :type => "button"}
+    %span{"aria-hidden" => "true"} ×
+.modal-body
+  = form_tag nil, method: :get  do
+    .row
+      .col-md-12
+        .form-group
+          = hidden_field_tag :lead_id, @lead.id
+          = label_tag :notification_tempalte_id, 'Select Template'
+          = select_tag :notification_tempalte_id, options_from_collection_for_select(@company.notification_templates, :id, :name), prompt: 'Please Select Template', class: 'form-control'
+    .clearfix
+  #template_details{style: "margin-top: 20px;"}
+      
+
+:javascript
+  $(document).on("change", "#notification_tempalte_id", function(e){
+    e.preventDefault()
+    var template_id = $(this).val();
+    getTemplateDetail(template_id);
+  });
+  function getTemplateDetail(template_id) {
+    var lead_id = $('#lead_id').val()
+    var url = 'leads/notifications/'+lead_id+'/template_detail/'+template_id
+    $.ajax({
+      type: 'GET',
+      url: url,
+      dataType: 'script'
+    });
+  }

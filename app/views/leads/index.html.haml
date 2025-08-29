@@ -1,0 +1,334 @@
+.content-wrapper
+  .content-header
+    .container-fluid
+      .row.mb-2
+        .col-md-2
+          %ol.breadcrumb
+            %li.breadcrumb-item
+              %a{:href => "/"} Home
+            %li.breadcrumb-item.active Leads
+          %h1.m-0.text-dark Leads
+        - if @company.setting.present? && @company.enable_cards_on_advance_search
+          = render "filtered_index_buckets", locals: {:@company => @company, :@leads => @leads}
+        - else
+          - unless params[:is_advanced_search].present? || params[:search_query].present?
+            = render "index_buckets", locals: {:@company => @company, :@leads => @leads}
+  .content
+  .container-fluid
+    .row
+      .col-lg-12
+        .card
+          .card-header
+            .box-header.row
+              .pull-left.col-md-4.d-none.d-sm-block
+                - if current_user.is_super? || current_user.can_import
+                  = link_to import_leads_path, :class=>"btn btn-primary btn-sm", target: "_blank" do
+                    = fa_icon "upload"
+                    Import
+                - if current_user.is_super? || current_user.can_import? || (current_user.is_executive? && @company.setting.present? && @company.enable_executive_export_leads)
+                  = link_to params.except(:action, :controller).merge!(format: :csv), class: "btn btn-primary btn-sm", style: "right: 5px;" do
+                    = fa_icon "download"
+                    Export
+                = link_to calender_view_leads_path, class: "btn btn-primary btn-sm" do
+                  = fa_icon "calendar"
+                  Calender View
+              .pull-left.col-md-5
+                = form_tag leads_path, method: :get do
+                  .input-group.input-group-sm
+                    = text_field_tag :search_query, params[:search_query], class: "form-control", placeholder: "Search by name, enquiry no, email or phone"
+                    .input-group-btn
+                      = button_tag type: "submit", class: "btn btn-default btn-sm pd-fixes" do
+                        = fa_icon "search"
+                      = link_to leads_path, class: "btn btn-default btn-sm pd-fixes" do
+                        = fa_icon "refresh"
+                      %a#adv-search{:href => "javascript:void(0);", :style => "margin-left:5px;", :class=>"btn btn-primary btn-sm"}
+                        Advanced Search
+                        %i.fa.fa-angle-down
+              .box-tools.col-md-3{:style=>"top:inherit;"}
+                .float-right
+                  .input-group
+                    .input-group-btn
+                      = link_to new_lead_path, class: 'btn btn-primary float-right btn-sm' do
+                        = fa_icon "plus"
+                        New Lead
+            - magic_fields = @company.magic_fields
+            - magic_field_names = magic_fields.pluck(:name)
+            = render partial: "advance_search_form", locals: {magic_fields: magic_fields}
+          = render partial: 'dailing_modal'
+          .card-body
+            = form_tag bulk_action_leads_path, method: :put do
+              - company_index_fields = current_user.company.index_fields
+              - magic_index_fields = magic_fields.where(is_indexed_field: true)
+              - if current_user.is_super? || current_user.can_import?
+                = render 'bulk_action'
+              .table-responsive
+                %table.table.table-bordered.table-condensed.table-striped.tablesorter
+                  %thead
+                    %tr
+                      %th{"data-sorter"=> "false", style: "width:3%;"}
+                        = check_box_tag 'checkbox', nil, false, class: 'select-all bulk-select'
+                      -if company_index_fields.include?("name")
+                        %th Name
+                      -if magic_index_fields.include?("firm_name")
+                        %th Firm Name
+                      -if magic_index_fields.include?("designation")
+                        %th Designation
+                      -if magic_index_fields.include?("area")
+                        %th Area
+                      -if company_index_fields.include?("mobile")
+                        %th Call/Mobile
+                      -if company_index_fields.include?("user_id")
+                        %th Assigned To
+                      -if @company.setting.present? && @company.enable_meeting_executives && company_index_fields.include?("closing_executive")
+                        %th Closing Manager
+                      -if company_index_fields.include?("status_id")
+                        %th.sorter-false
+                          - if params["sort"].present? and params["sort"] == "desc"
+                            = link_to params.merge(key: "status_id", sort: "asc"), class: "lead-collapse", "aria-controls" => "collapseOne", role: "button" do
+                              Status
+                          - else
+                            = link_to params.merge(key: "status_id", sort: "desc"), class: "lead-collapse", "aria-controls" => "collapseOne", role: "button" do
+                              Status
+                      -if company_index_fields.include?('presale_stage_id')
+                        %th Stage
+                      -if company_index_fields.include?("project_id")
+                        %th.sorter-false
+                          - if params["sort"].present? and params["sort"] == "desc"
+                            = link_to params.merge(key: "project_id", sort: "asc"), class: "lead-collapse", "aria-controls" => "collapseOne", role: "button" do
+                              Project
+                          - else
+                            = link_to params.merge(key: "project_id", sort: "desc"), class: "lead-collapse", "aria-controls" => "collapseOne", role: "button" do
+                              Project
+                      -if company_index_fields.include?("comment")
+                        %th Description
+                      -if company_index_fields.include?("ncd")
+                        %th.sorter-false
+                          - if params["sort"].present? and params["sort"] == "desc"
+                            = link_to params.merge(key: "ncd", sort: "asc"), class: "lead-collapse", "aria-controls" => "collapseOne", role: "button" do
+                              Next Call Date
+                          - else
+                            = link_to params.merge(key: "ncd", sort: "desc"), class: "lead-collapse", "aria-controls" => "collapseOne", role: "button" do
+                              Next Call Date
+                      -if company_index_fields.include?("budget")
+                        %th Budget
+                      -if company_index_fields.include?("sub_source")
+                        %th Sub Source
+                      -if company_index_fields.include?("enquiry_sub_source_id")
+                        %th Sub Source
+                      -if company_index_fields.include?("lead_no")
+                        %th Lead No
+                      -if company_index_fields.include?("visit_date")
+                        %th Visit Date
+                      -if company_index_fields.include?("visit_comments")
+                        %th Visit Comment
+                      -if company_index_fields.include?("city_id")
+                        %th City
+                      -if company_index_fields.include?("state")
+                        %th State
+                      -if company_index_fields.include?("country")
+                        %th Country
+                      -if company_index_fields.include?("created_at")
+                        %th.sorter-false
+                          - if params["sort"].present? and params["sort"] == "desc"
+                            = link_to params.merge(key: "created_at", sort: "asc"), class: "lead-collapse", "aria-controls" => "collapseOne", role: "button" do
+                              Created at
+                          - else
+                            = link_to params.merge(key: "created_at", sort: "desc"), class: "lead-collapse", "aria-controls" => "collapseOne", role: "button" do
+                              Created at
+                      - magic_index_fields.each do |field|
+                        %th
+                          = field.pretty_name
+                      %th Action
+                  %tbody
+                    - if @leads.present?
+                      - @leads.each do |lead|
+                        - @lead = lead
+                        %tr
+                          %td
+                            = check_box_tag 'lead_ids[]', lead.id, false, class: 'bulk-select'
+                          -if company_index_fields.include?("name")
+                            %td
+                              - lead_name = lead.name.present? ? lead.name : '--'
+                              = link_to lead_name, lead_path(lead), remote: true
+                              - if company_index_fields.include?("source_id") && current_user.check_source_presence
+                                - source_def_data = lead.source&.name
+                                %br
+                                - if lead.source.present?
+                                  %span{class: "badge bg-gradient-#{find_class(lead.source)}", title: source_def_data, "data-toggle": "tooltip"}
+                                    = source_def_data
+                          - if magic_index_fields.include?("firm_name")
+                            %td= lead.firm_name
+                          - if magic_index_fields.include?("designation")
+                            %td= lead.designation
+                          - if magic_index_fields.include?("area")
+                            %td= lead.area
+                          - if company_index_fields.include?("mobile")
+                            %td
+                              - if lead.is_phone_number_valid? && current_user.click_to_call_enabled? && current_user.sid_active? && current_user.mobile.present?
+                                = link_to "javascript:void(0)", class: "call btn btn-primary m-r-5",  style: "padding: 0px; width: 18px;", data: {lead_id: lead.id} do
+                                  = fa_icon "phone"
+                                - unless current_user.is_telecaller?
+                                  - if @company.setting&.can_show_lead_phone
+                                    - unless current_user.is_executive? && @company.setting.hide_lead_mobile_for_executive
+                                      %br
+                                      %span
+                                        = lead.mobile
+                              - else
+                                - unless current_user.is_telecaller? || (current_user.is_executive? && @company.setting.hide_lead_mobile_for_executive)
+                                  = lead.mobile
+                          -if company_index_fields.include?("user_id")
+                            %td= lead.user.name rescue nil
+                          - if @company.setting.present? && @company.enable_meeting_executives && company_index_fields.include?("closing_executive")
+                            %td= lead.postsale_user.name rescue nil
+                          -if company_index_fields.include?("status_id")
+                            %td
+                              = lead.status.name rescue nil
+                              - if lead.visits.present?
+                                - if current_user.company.enable_advance_visits
+                                  - visit_count = lead.visits.executed.count
+                                - else
+                                  - visit_count = lead.visits.count
+                                - unless visit_count.zero?
+                                  %br
+                                  %span{class: "badge bg-gradient-success", title: "#{visit_count} Visits", "data-toggle": "tooltip"}
+                                    = "Visits: #{visit_count}"
+                          -if company_index_fields.include?('presale_stage_id')
+                            %td= lead.presales_stage&.name
+                          -if company_index_fields.include?("project_id")
+                            %td= lead.project.name rescue nil
+                          -if company_index_fields.include?("comment")
+                            %td.showmore= lead.comment.strip.gsub(/\n/, '<br/>').html_safe rescue ""
+                          -if company_index_fields.include?("ncd")
+                            %td= lead.ncd.strftime("%d-%m-%y %H:%M %p") rescue nil
+                          -if company_index_fields.include?("budget")
+                            %td= lead.budget
+                          - if company_index_fields.include?("sub_source")
+                            %td= lead.sub_source
+                          - if company_index_fields.include?("enquiry_sub_source_id")
+                            %td= lead.enq_subsource&.name
+                          -if company_index_fields.include?("lead_no")
+                            %td= lead.lead_no
+                          -if company_index_fields.include?("visit_date")
+                            %td= lead.visit_date
+                          -if company_index_fields.include?("visit_comments")
+                            %td= lead.visit_comments
+                          -if company_index_fields.include?("city_id")
+                            %td= lead.city&.name
+                          -if company_index_fields.include?("state")
+                            %td= lead.state
+                          -if company_index_fields.include?("country")
+                            %td= lead.country
+                          -if company_index_fields.include?("created_at")
+                            %td= lead.created_at.strftime("%d-%m-%y %H:%M %p")
+                          - magic_index_fields.each do |field|
+                            %td= lead.send("#{field.name}")
+                          %td
+                            - if @company.setting.present? & @company.enable_lead_direct_edit
+                              = link_to edit_lead_path(lead), class: "btn btn-primary m-r-5", style: "padding: 4px 5px; width: auto; border-radius: 50%!important;" do
+                                =image_tag('edit-user.svg')
+                            = link_to edit_lead_path(lead), remote: true, class: "btn btn-primary m-r-5", style: "padding: 4px 8px; width: auto; border-radius: 50%!important;" do
+                              = fa_icon "pencil"
+                            = link_to send_sms_leads_notifications_path(lead), remote: true, class: "btn btn-primary m-r-5", style: "padding: 4px 8px; width: auto; border-radius: 50%!important;" do
+                              = fa_icon "envelope"
+                            - if @company.setting&.enable_email_action
+                              = link_to send_email_leads_notifications_path(lead), remote: true, class: "btn btn-primary m-r-5", style: "padding: 4px 8px; width: auto; border-radius: 50%!important;" do
+                                = fa_icon "paper-plane"
+                            = link_to histories_lead_path(lead), target: '_blank',class: "btn btn-primary m-r-5", style: "padding: 4px 8px; width: auto; border-radius: 50%!important;" do
+                              = fa_icon "history"
+                            - unless lead.loan.present?
+                              = link_to new_loan_lead_path(lead), remote: true, class: "btn btn-primary m-r-5", style: "padding: 4px 8px; width: auto; border-radius: 50%!important;" do
+                                = fa_icon "money"
+                            = link_to copy_lead_path(lead), remote: true, class: "btn btn-primary m-r-5", style: "padding: 4px 8px; width: auto; border-radius: 50%!important;" do
+                              = fa_icon "clone"
+                            - if current_user.is_super? && current_user.can_delete_lead?
+                              = link_to lead, method: :delete, class: "btn btn-danger m-r-5", data: {:confirm => "Would you like to permanently delete this Lead?", "commit-class" => "btn btn-success", "cancel-class" => "btn btn-danger"}, style: "padding: 4px 8px; width: auto; border-radius: 50%!important;" do
+                                = fa_icon "trash-o"
+                            - if @company.setting&.enable_whatsapp_action && lead.is_phone_number_valid?
+                              = link_to "https://web.whatsapp.com/send?phone=+91#{lead.mobile.last(10)}",target: "_blank", class: "btn btn-primary m-r-5", style: "padding: 4px 8px; width: auto; border-radius: 50%!important;" do
+                                %i.fa.fa-whatsapp{"aria-hidden" => "true"}
+                - if current_user.click_to_call_enabled? && current_user.agent_id.present?
+                  = link_to fa_icon('phone'), 'javascript:void(0)', class: 'btn btn-circle btn-primary zentrixcloud', data: {agent_id: current_user.agent_id}
+                %div#zentrixcloudiframeHolder
+              - if @leads.present?
+                %br
+                  %strong{style: "margin-left: 11px;"} Lead Count - #{@leads_count}
+                  = will_paginate @leads, :class  =>  "ct-pag"
+:css
+  th a {
+    color:#fff;
+  }
+
+:javascript
+  $(document).ready(function(){
+    var canFetchCount =  $("#hot_lead_counts").length  || $("#new_lead_counts").length ||  $("#booked_counts").length || $("#dead_lead_counts").length
+    if(canFetchCount){
+      getLeadsCounts();
+    }
+    loadCzenbar();
+  });
+
+  function loadCzenbar(){
+    if($('.zentrixcloud').length > 0){
+      var agent_id = $('.zentrixcloud').data('agent-id');
+      var url = `https://agent.c-zentrixcloud.com/czapp/cti_handler.php?e=${agent_id}&crm_name=fashion_tv`
+      if(!$('#iframe').length) {
+        $('#zentrixcloudiframeHolder').html('<iframe id="iframe" allow="microphone; autoplay" width= "322" height="352"  scrolling="no" frameBorder="0"></iframe>');
+        var frameElement = document.getElementById("iframe");
+        frameElement.src = url;
+      }
+      else {
+        $('#zentrixcloudiframeHolder').html('');
+      }
+    }
+  }
+  function getLeadsCounts(){
+    $.ajax({
+      type: "GET",
+      url: '/leads/lead_counts',
+      dataType: 'json',
+      success:function(response){
+        if(response.status == 200){
+          $(".today_calls_leads_counts").append(response.today_calls_count)
+          $(".backlog_lead_counts").append(response.backlog_leads_count)
+          $("#hot_lead_counts").append(response.hot_status_count);
+          $("#new_lead_counts").append(response.new_status_count);
+          $("#booked_counts").append(response.booking_done_count);
+          $("#dead_lead_counts").append(response.dead_lead_count);
+        }
+      }
+    });
+  }
+
+  $('.zentrixcloud').click(function(){
+    var agent_id = $('.zentrixcloud').data('agent-id');
+    var url = `https://agent.c-zentrixcloud.com/czapp/cti_handler.php?e=${agent_id}&crm_name=fashion_tv`
+    if(!$('#iframe').length) {
+      $('#zentrixcloudiframeHolder').html('<iframe id="iframe" allow="microphone; autoplay" width= "322" height="352"  scrolling="no" frameBorder="0"></iframe>');
+      var frameElement = document.getElementById("iframe");
+      frameElement.src = url;
+    }
+    else {
+      $('#zentrixcloudiframeHolder').html('');
+    }
+  });
+
+
+  $('.call').click(function(){
+    var lead_id = $(this).data('leadId');
+    $("#connected-modal").show();
+    $.ajax({
+      type: 'POST',
+      url: '/leads/'+lead_id+'/make_call',
+      dataType: 'json',
+      success: function(response) {
+        $("#connected-modal").hide();
+        if(response["success"]){
+          $('#success-connected-modal').show();
+        }else
+        {
+          console.log(response);
+          $('#failed-connected-modal').show();
+        }
+      }
+    });
+  });

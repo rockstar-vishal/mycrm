@@ -1,0 +1,59 @@
+.content-wrapper
+  .content-header
+    .container-fluid
+      .row.mb-2
+        .col-md-9
+          %ol.breadcrumb
+            %li.breadcrumb-item
+              %a{:href => "/"} Home
+            %li.breadcrumb-item.active Dead Leads Report
+          %h1.m-0.text-dark Dead Leads Report
+  .content
+    .container-fluid
+      .row
+        .col-lg-12
+          .card
+            .card-header
+              = link_to params.except(:action, :controller).merge!(format: :csv), class: "btn btn-primary btn-sm", style: "right: 5px;" do
+                = fa_icon "download"
+                Export
+              = render 'reports_button', locals: {report_name: :dead}
+              = render 'report_search'
+            .card-body
+              - plottable = {}
+              .table-responsive
+                %table.table.table-bordered.table-hover.dataTables.table-sm.responsive.nowrap{style: 'width:100%!important'}
+                  %thead
+                    %tr
+                      %th.all User
+                      %th.all Total
+                      - @reasons.each do |reason|
+                        %th.desktop= reason.reason
+                  - overall_counts = 0
+                  %tbody
+                    - @users.each do |user|
+                      - this_user_data = @data.where(:user_id=>user.id)
+                      - user_total = this_user_data.count
+                      - plottable[user.name] = user_total
+                      - overall_counts += user_total
+                      %tr
+                        %td= user.name
+                        %td
+                          = link_to dld_path(:assigned_to=>[user.id]), target: "_blank" do
+                            = user_total
+                        - @reasons.each do |reason|
+                          - this_reason_data = this_user_data.where(:dead_reason_id=>reason.id)
+                          %td
+                            = link_to dld_path(:assigned_to=>[user.id], :dead_reason_ids=>[reason.id]), target: "_blank" do
+                              = this_reason_data.count
+                  - if @data.present?
+                    %td Total
+                    %td
+                      = link_to dld_path(:assigned_to=>[@users.ids]), target: "_blank" do
+                        = overall_counts
+                    - @reasons.each do |reason|
+                      %td
+                        = link_to dld_path(:assigned_to=>[@users.ids], :dead_reason_ids=>[reason.id]), target: "_blank" do
+                          = @data.where(:dead_reason_id=>reason.id).count
+              .chart-canvas.d-none.d-sm-block.pieChart
+                = pie_chart(plottable, library: {animation: {easing: 'easeOutQuart'}})

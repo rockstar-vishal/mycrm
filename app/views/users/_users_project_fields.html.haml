@@ -1,0 +1,5 @@
+.nested-fields.col-md-4{:style => "border: 1px dashed #999; border-radius: 5px; padding: 20px;"}
+  .form-group
+    = f.select :project_id, options_from_collection_for_select(current_user.company.projects, :id, :name, (f.object.project_id rescue nil)), :prompt=>'Select Project', class: 'form-control', id: 'project_id'
+  %center
+    = link_to_remove_association "Remove", f, :class=>"btn btn-danger"

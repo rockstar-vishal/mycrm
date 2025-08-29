@@ -1,0 +1,51 @@
+# Read about fixtures at http://api.rubyonrails.org/classes/ActiveRecord/FixtureSet.html
+
+one:
+  company_id: 1
+  date: 2020-07-31
+  name: MyString
+  email: MyString
+  mobile: MyString
+  other_phones: MyText
+  other_emails: MyText
+  address: MyText
+  city: MyString
+  state: MyString
+  country: MyString
+  budget: 1
+  source_id: 1
+  project_id: 1
+  user_id: 1
+  ncd: 2020-07-31 23:16:31
+  comment: MyText
+  status_id: 1
+  lead_no: MyString
+  visit_date: 2020-07-31
+  visit_comments: MyText
+  call_in_id: 1
+  dead_reason: MyString
+
+two:
+  company_id: 1
+  date: 2020-07-31
+  name: MyString
+  email: MyString
+  mobile: MyString
+  other_phones: MyText
+  other_emails: MyText
+  address: MyText
+  city: MyString
+  state: MyString
+  country: MyString
+  budget: 1
+  source_id: 1
+  project_id: 1
+  user_id: 1
+  ncd: 2020-07-31 23:16:31
+  comment: MyText
+  status_id: 1
+  lead_no: MyString
+  visit_date: 2020-07-31
+  visit_comments: MyText
+  call_in_id: 1
+  dead_reason: MyString

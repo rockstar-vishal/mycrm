@@ -1,0 +1,5 @@
+.row
+  .col-md-12
+    .form-group
+      %label Select Manager
+      = select_tag :manager_id, options_from_collection_for_select(current_user.manageables.managers, :id, :name, (params[:manager_id])), class: "form-control multi-select-list", prompt: "Please Select"

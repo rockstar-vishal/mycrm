@@ -1,0 +1,56 @@
+.content-wrapper
+  .content-header
+    .container-fluid
+      .row.mb-2
+        .col-md-9
+          %ol.breadcrumb
+            %li.breadcrumb-item
+              %a{:href => "/"} Home
+            %li.breadcrumb-item.active API Keys
+          %h1.m-0.text-dark API Keys
+  .content
+    .container-fluid
+      .row
+        .col-lg-12
+          .card
+            .card-header
+              .float-right
+                .input-group
+                  .input-group-btn
+                    = link_to 'Add API Keys', new_companies_api_key_path, remote: true, class: 'btn btn-primary float-right btn-sm'
+              %h4.mb-0 API Keys
+
+            .card-body
+              .table-responsive
+                %table.table.table-bordered.table-hover.dataTables.table-sm.responsive.nowrap{style: 'width:100%!important'}
+                  %thead
+                    %tr
+                      %th.all #
+                      %th.all Source
+                      %th.all User
+                      %th.all Project
+                      %th.all Key
+                      %th.all Action
+                  %tbody
+                    - @keys.each.with_index(1) do |key, i|
+                      %tr
+                        %td= i
+                        %td
+                          = key.source.name rescue "-"
+                        %td= key.user.name rescue "-"
+                        %td= key.project.name rescue "-"
+                        %td
+                          %span{id: "actualLink-#{key.id}"}
+                            = key.key
+                          %button.clipboard-btn.btn.btn-primary{"data-clipboard-text"=>key.key}
+                            = fa_icon "copy"
+                        %td
+                          = link_to (fa_icon "pencil"), edit_companies_api_key_path(key.uuid), remote: true, class: "btn btn-primary btn-sm"
+                          = link_to companies_api_key_path(key.uuid), class: "btn btn-danger", method: :delete,
+                              data: {:confirm => "Would you like to permanently delete this API Keys?", "commit-class" => "btn btn-success", "cancel-class" => "btn btn-danger"}, style: "padding: 0px; width: 20px;" do
+                            = fa_icon "trash-o"
+
+          - if @keys.present?
+            .pagination-custom-holder
+              %strong{style: "margin-left: 0;"} Api Keys Count - #{@keys.count}
+              = will_paginate @keys, :class  =>  "ct-pag"

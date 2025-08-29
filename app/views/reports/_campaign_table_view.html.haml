@@ -1,0 +1,24 @@
+.table-responsive
+  %table.table.table-bordered.table-hover.dataTables.table-sm.responsive.nowrap{style: 'width:100%!important'}
+    %thead
+      %tr
+        %th.all #
+        %th.all Date
+        %th.all Lead Count
+        %th.all Visit Count
+    %tbody
+      - @campaign_date_range.each.with_index(1) do |date, index|
+        %tr
+          %td
+            = index
+          %td
+            = date&.strftime("%Y-%m-%d")
+            - leads_count = @campaign_leads.where(created_at: date.beginning_of_day..date.end_of_day).count
+          %td
+            = link_to leads_count, leads_path(is_advanced_search: true, created_at_from: date.strftime("%d/%m/%Y"), created_at_upto: date.strftime("%d/%m/%Y"), source_id: [@campaign.source_id]), target: "_blank"
+          %td
+            - visit_count = @campaign_visited_leads.where(created_at: date.beginning_of_day..date.end_of_day).count
+            - if visit_count > 0
+              = link_to visit_count, leads_path(is_advanced_search: true, created_at_from: date.strftime("%d/%m/%Y"), created_at_upto: date.strftime("%d/%m/%Y"), source_id: [@campaign.source_id], visited: true), target: "_blank"
+            - else
+              = visit_count

@@ -1,0 +1,21 @@
+.content-wrapper
+  .content-header
+    .container-fluid
+      .row.mb-2
+        .col-md-9
+          %ol.breadcrumb
+            %li.breadcrumb-item
+              %a{:href => "/"} Home
+            %li.breadcrumb-item.active Scheduled Visit Planned Report
+          %h1.m-0.text-dark Scheduled Visit Planned Report
+  .content
+    .container-fluid
+      .row
+        .col-lg-12
+          .card
+            .card-header
+              = link_to params.except(:action, :controller).delete(calender_view: :true), class: "btn btn-primary btn-sm", style: "right: 5px;" do
+                = fa_icon "table"
+                Table View
+            .card-body.custom-calender
+              #calendar

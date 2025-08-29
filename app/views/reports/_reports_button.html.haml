@@ -1,0 +1,10 @@
+- unless params[:start_date] && params[:end_date]
+  - params[:selected] = 'fbtn'
+%span.button-outer
+  = link_to "Today", polymorphic_path([:reports, locals[:report_name]], start_date: Date.today, end_date: Date.today, selected: 'ibtn'), class: "btn  bg-gradient-navy elevation-1 btn-sm mr-2 #{('elevation-3' if params[:selected] == 'ibtn')}"
+  = link_to "Last 7 Days", polymorphic_path([:reports, locals[:report_name]], start_date: Date.today-7.days, end_date: Date.today, selected: 'fbtn'), class: "btn bg-gradient-primary elevation-1 btn-sm mr-2 #{('elevation-3' if params[:selected] == 'fbtn')}"
+  = link_to "Last 30 Days", polymorphic_path([:reports, locals[:report_name]], start_date: Date.today-30.days, end_date: Date.today, selected: 'sbtn'), class: "btn bg-gradient-success elevation-1 btn-sm mr-2 #{('elevation-3' if params[:selected] == 'sbtn')}"
+  = link_to "This Month", polymorphic_path([:reports, locals[:report_name]], start_date: Date.today.beginning_of_month, end_date: Date.today.end_of_month, selected: 'tbtn'), class: "btn bg-gradient-info elevation-1 btn-sm mr-2 #{('elevation-3' if params[:selected] == 'tbtn')}"
+  = link_to "Last Month", polymorphic_path([:reports, locals[:report_name]], start_date: (Date.today-1.month).beginning_of_month, end_date: (Date.today-1.month).end_of_month, selected: 'lbtn'), class: "btn bg-gradient-warning elevation-1 btn-sm mr-2 #{('elevation-3' if params[:selected] == 'lbtn')}"
+  - first_lead_date = current_user.company.leads.first&.created_at&.to_date || Date.today
+  = link_to "Till Date", polymorphic_path([:reports, locals[:report_name]],start_date: first_lead_date, end_date: Date.today, selected: 'tdbtn'), class: "btn bg-gradient-info elevation-1 btn-sm mr-2 #{('elevation-3' if params[:selected] == 'tdbtn')}"

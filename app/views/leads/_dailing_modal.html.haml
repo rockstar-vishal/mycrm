@@ -1,0 +1,24 @@
+.modal#connected-modal{style: "display:none"}
+  .modal-dialog
+    .modal-content
+      .modal-body
+        = image_tag 'EnDialup.gif', style: "width: 102%"
+.modal#success-connected-modal{style: "display:none"}
+  .modal-dialog
+    .modal-content
+      .modal-header
+        %button.close{"aria-hidden" => "true", "data-dismiss" => "success-connected-modal", :type => "button"} ×
+      .modal-body
+        = image_tag 'EnConnected.gif', style: "width: 102%"
+.modal#failed-connected-modal{style: "display:none"}
+  .modal-dialog
+    .modal-content
+      .modal-header
+        %button.close{"aria-hidden" => "true", "data-dismiss" => "modal", :type => "button"} ×
+      .modal-body
+        = image_tag 'EnFailed.gif', style: "width: 102%"
+
+:javascript
+  $('.close').on('click', function () {
+    $('.modal').hide();
+  })

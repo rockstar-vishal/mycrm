@@ -1,0 +1,19 @@
+- custom_fields.order(created_at: :asc).each do |field|
+  .col-md-3{:class=> ("required" if field.is_required?)}
+    - custom_class = field.datatype == "check_box_boolean" ? 'mt-40' : ''
+    .form-group{class: "#{custom_class}"}
+      - if field.datatype == 'string' && field.is_select_list
+        = f.send(:select, field.name, options_for_select(field.items, f.object.send(field.name)), required: field.is_required?, label: field.pretty_name, class: 'form-control',  prompt: 'Please Select' )
+      - elsif field.datatype == 'string'
+        = f.send(:text_field, field.name, required: field.is_required?, label: field.pretty_name, class: 'form-control', placeholder: "#{field.pretty_name}")
+      - elsif field.datatype == "check_box_boolean"
+        = f.send(:check_box, field.name, label: field.pretty_name, class: 'custom-checkbox')
+      - elsif field.datatype == "date"
+        = f.send(:text_field, field.name, required: field.is_required?, label: field.pretty_name, class: 'form-control dateFormat', placeholder: "#{field.pretty_name}")
+      - elsif field.datatype == "datetime"
+        = f.send(:text_field, field.name, required: field.is_required?, label: field.pretty_name, class: 'form-control datetimepicker', placeholder: "#{field.pretty_name}")
+      - elsif field.datatype == "integer"
+        = f.send(:number_field, field.name, required: field.is_required?, label: field.pretty_name, class: 'form-control', placeholder: "#{field.pretty_name}")
+
+
+

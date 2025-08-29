@@ -1,0 +1,15 @@
+.row
+  .col-md-6
+    .form-group
+      = label_tag :trend_from, 'From Date ', class: 'control-label'
+      .input-group
+        %span.input-group-addon
+          = fa_icon 'calendar'
+        = text_field_tag :start_date, (@start_date.to_date rescue nil), class: 'form-control dateFormat pull-right', required: true
+  .col-md-6
+    .form-group
+      = label_tag :trend_upto, 'To Date ', class: 'control-label'
+      .input-group
+        %span.input-group-addon
+          = fa_icon 'calendar'
+        = text_field_tag :end_date, (@end_date.to_date rescue nil), class: 'form-control dateFormat pull-right', required: true

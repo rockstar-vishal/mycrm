@@ -1,0 +1,26 @@
+.col-md-3
+  = f.select :property_type, options_for_select(Lead::RESIDENTIAL_PROPERTY_TYPES,f.object.property_type),{:prompt=>true}
+#area_config.col-md-3{:style => ("display:none;" unless Lead::RESIDENTIAL_PROPERTY_TYPES[0..2].include?(f.object.property_type))}
+  = f.select :area_config, options_for_select(Lead::PROPERTY_CONFIGURATION, f.object.area_config),{:prompt=>true, label: "Configuration"}
+#area_plot_config.col-md-9{:style => ("display:none;" unless f.object.property_type == 'Plot')}
+  .row
+    .col-md-4
+      = f.number_field :plot_area_from, class: "form-control"
+    .col-md-4
+      = f.number_field :plot_area_to, class: "form-control"
+    .col-md-4
+      = f.select :area_unit, options_for_select(Lead::UNITS, f.object.area_unit),{:prompt=>true, label: "Unit"}
+.col-md-3
+  = f.select :purpose, options_for_select(Lead::PURPOSE, f.object.purpose), {prompt: true}
+
+:javascript
+  $("#lead_residential_type_attributes_property_type").change(function(){
+    var area_val = $(this).val();
+    if(area_val === "Plot"){
+      $("#area_config").hide();
+      $("#area_plot_config").show();
+    }else{
+      $("#area_config").show();
+      $("#area_plot_config").hide();
+    }
+  })

@@ -1,0 +1,83 @@
+%nav.main-header.navbar.navbar-expand.navbar-white.navbar-light
+  %ul.navbar-nav
+    %li.nav-item
+      %a.nav-link.menu-iconfix{"data-widget" => "pushmenu", :href => "#"}
+        = fa_icon('bars')
+    %li.nav-item.d-none.d-sm-inline-block
+      = link_to root_path, class: 'nav-link' do
+        Home
+  %ul.navbar-nav.ml-auto
+    %li.nav-item
+      %a.nav-link.pt-0{"data-slide" => "true", "data-widget" => "control-sidebar", :href => "#"}
+        .user-panel.d-flex
+          .image
+            = image_tag  "user2-160x160.jpg", class: 'img-circle'
+          .info
+            = current_user.name
+            = fa_icon('angle-down')
+%aside.main-sidebar.sidebar-dark-primary.elevation-4
+  = link_to root_path, class: "brand-link logo-switch" do
+    = image_tag  "small-logo.jpg", class: 'brand-image-xl logo-xs'
+    = image_tag  "logo.jpg", class: 'brand-image-xs logo-xl'
+  .sidebar
+    %nav.mt-2
+      %ul.nav.nav-pills.nav-sidebar.flex-column{"data-accordion" => "false", "data-widget" => "treeview", :role => "menu"}
+        %li.nav-item
+          = link_to companies_path, class: "nav-link #{'active' if (params[:controller] == "companies")}" do
+            %i.nav-icon.fas.fa-tachometer-alt.fa.fa-building
+            %p Manage Companies
+          %li.nav-item.has-treeview{class: "#{['cities','call_ins','sources', 'statuses', 'users'].include?(params[:controller]) ? 'menu-open' : ''}"}
+            = link_to '#', class: "nav-link #{'active' if ['cities','call_ins','sources', 'statuses', 'users'].include?(params[:controller])}" do
+              %i.nav-icon.fa.fa-tasks.ct-settings-icon
+              %p
+                Settings
+                %i.right.fa.fa-angle-left
+            %ul.nav.nav-treeview
+              %li.nav-item
+                = link_to countries_path, class: "nav-link #{'active' if (params[:controller] == 'countries')}" do
+                  %i.nav-icon.fa.fa-circle-o.ct-city-icon
+                  %p Country
+            %ul.nav.nav-treeview
+              %li.nav-item
+                = link_to cities_path, class: "nav-link #{'active' if (params[:controller] == 'cities')}" do
+                  %i.nav-icon.fa.fa-circle-o.ct-city-icon
+                  %p City
+              %li.nav-item
+                = link_to regions_path, class: "nav-link #{'active' if (params[:controller] == 'regions')}" do
+                  %i.nav-icon.fa.fa-circle-o.ct-city-icon
+                  %p Region
+              %li.nav-item
+                = link_to localities_path, class: "nav-link #{'active' if (params[:controller] == 'localities')}" do
+                  %i.nav-icon.fa.fa-circle-o.ct-city-icon
+                  %p Locality
+              %li.nav-item
+                = link_to sources_path, class: "nav-link #{'active' if params[:controller] == 'sources'}" do
+                  %i.nav-icon.fa.fa-circle-o.ct-sources-icon
+                  %p Source
+              %li.nav-item
+                = link_to statuses_path, class: "nav-link #{'active' if params[:controller] == 'statuses'}" do
+                  %i.nav-icon.fa.fa-circle-o.ct-statuses-icon
+                  %p Status
+              %li.nav-item
+                = link_to stages_path, class: "nav-link #{'active' if params[:controller] == 'stages'}" do
+                  %i.nav-icon.fa.fa-circle-o.ct-statuses-icon
+                  %p Stage
+              %li.nav-item
+                = link_to call_ins_path, class: "nav-link #{'active' if params[:controller] == 'call_ins'}" do
+                  %i.nav-icon.fa.fa-circle-o.ct-statuses-icon
+                  %p Call Ins
+              %li.nav-item
+                = link_to users_path, class: "nav-link #{'active' if params[:controller] == 'users'}" do
+                  %i.nav-icon.fa.fa-circle-o.ct-statuses-icon
+                  %p Users
+%aside.control-sidebar.control-sidebar-dark
+  %div
+    %ul.profile-menu
+      %li
+        = link_to edit_profile_users_path, class: '' do
+          %i.icon.ion-md-person.ct-profile-icon.fa.fa-user>
+          Profile
+      %li
+        = link_to destroy_user_session_path, method: :delete, class: '' do
+          %i.icon.ion-md-lock.ct-logout-icon.fa.fa-lock
+          Logout

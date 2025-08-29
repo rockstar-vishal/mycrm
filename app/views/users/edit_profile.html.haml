@@ -1,0 +1,59 @@
+.content-wrapper
+  .content-header
+    .container-fluid
+      .row.mb-2
+        .col-sm-12
+          %ol.breadcrumb
+            %li.breadcrumb-item
+              %a{:href => root_path} Home
+            %li.breadcrumb-item.active
+              Profile
+        .col-sm-12
+          %h1.m-0.text-dark
+            Edit Profile
+  .content
+    .container-fluid
+      - if @user.errors.any?
+        #error_explanation
+          %h4
+            = pluralize(@user.errors.count, "error")
+            prohibited this action:
+          %ul
+            - @user.errors.full_messages.each do |message|
+              %li= message
+      .row
+        .col-md-12
+          .card
+            .card-body
+              = bootstrap_form_for @user, url: update_profile_users_path, layout: :horizontal, label_col: 'col-md-12', control_col: 'col-md-12' do |f|
+                .row
+                  .col-md-6.required
+                    .form-group
+                      = f.text_field :name, class: "form-control", placeholder: "Name", required: true
+                  .col-md-6
+                    .form-group
+                      = f.text_field :mobile, class: "form-control", placeholder: "Phone", disabled: (!@user.is_super? && @user.company.setting.present? && @user.company.setting.edit_profile_not_allowed)
+                  .col-md-6
+                    .form-group
+                      = f.text_field :email, class: "form-control", placeholder: "Email", required: true, disabled: (!@user.is_super? && @user.company.setting.present? && @user.company.setting.edit_profile_not_allowed)
+                  .col-md-6
+                    .form-group
+                      = f.file_field :image, label: 'Profile Image', class: "form-control"
+                  .w-100
+                  .col-md-6
+                    .form-group
+                      = f.password_field :password, class: "form-control", placeholder: "Password"
+                  .col-md-6
+                    .form-group
+                      = f.password_field :password_confirmation, class: "form-control", placeholder: "Re Enter Password"
+                .w-100
+                %hr
+                .row
+                  .col-md-12
+                    .form-group
+                      = button_tag type: "submit", class: "btn btn-primary  btn-sm", data: {disable_with: "Please Wait..."} do
+                        = fa_icon "floppy-o"
+                        Save
+                      = link_to root_path, class: "btn btn-danger  btn-sm" do
+                        = fa_icon "close"
+                        Cancel

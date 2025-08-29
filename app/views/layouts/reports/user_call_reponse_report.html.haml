@@ -1,0 +1,50 @@
+.content-wrapper
+  .content-header
+    .container-fluid
+      .row.mb-2
+        .col-md-9
+          %ol.breadcrumb
+            %li.breadcrumb-item
+              %a{:href => "/"} Home
+            %li.breadcrumb-item.active Call Response Report
+          %h1.m-0.text-dark Call Response Report
+  .content
+    .container-fluid
+      .row
+        .col-lg-12
+          .card
+            .card-header
+              #adv-searchbox.box-body
+                = form_tag nil, method: :get, class: "filter-search-menu" do
+                  .card-header
+                    .custom-search
+                      .row
+                        .col-md-6
+                          = render partial: 'shared/date_range_display'
+                        .col-md-3
+                          = render partial: 'shared/projects_filter'
+            .card-body
+              - plottable = {}
+              .table-responsive
+                %table.table.table-bordered.table-hover.dataTables.table-sm.responsive.nowrap{style: 'width:100%!important'}
+                  %thead
+                    %tr
+                      %th.all User
+                      %th.all Total Called Leads
+                      %th.all Average Time To Call
+                  %tbody
+                    - @users.each do |user|
+                      - this_user_data = @data.select{|k| k["user_id"] == user.id}
+                      - if this_user_data.present?
+                        - total_leads =(this_user_data.map{|k| k["lead_ids"].count}.uniq.sum rescue 0)
+                        - total_unique_lead = (this_user_data.map{|k| k["lead_ids"].count}.uniq.sum rescue 0)
+                        - plottable[user.name] = total_unique_lead
+                        %tr
+                          %td= user.name
+                          %td
+                            = link_to ld_path(:assigned_to=>[user.id]), target: "_blank" do
+                              = user_total
+                          %td= (response_time/total_leads.to_f).round(2) rescue 0
+
+              .chart-canvas.d-none.d-sm-block.pieChart
+                = pie_chart(plottable, library: {animation: {easing: 'easeOutQuart'}})

@@ -1,0 +1,5 @@
+.row
+  .col-md-12
+    .form-group
+      %label Select Customer Type
+      = select_tag :customer_type, options_for_select(Lead.customer_types, params[:customer_type]), prompt: "Please Select", class: "form-control"

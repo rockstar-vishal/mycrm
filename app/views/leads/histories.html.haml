@@ -1,0 +1,253 @@
+= javascript_include_tag 'lead_history'
+.content-wrapper
+  .content-header
+    .container-fluid
+      .row.mb-2
+        .col-md-9
+          %ol.breadcrumb
+            %li.breadcrumb-item
+              %a{:href => "/"} Home
+            %li.breadcrumb-item.active Leads
+          %h1.m-0.text-dark History
+  .content
+    .container-fluid
+      - if @lead.system_messages.successful.present?
+        .row
+          .col-lg-12
+            .card
+              .card-header
+                .float-right
+                  .input-group
+                    .input-group-btn
+                      - if @company.setting.present? && @company.enable_lead_log_export
+                        = link_to '#', class: "btn btn-primary btn-sm lead-sms-export" do
+                          = fa_icon "download"
+                          Export
+                %h4 SMSes
+              .card-body
+                .table-responsive
+                  %table.table.table-bordered.table-hover.dataTables.table-sm.responsive.nowrap.lead-sms-export{style: 'width:100%!important'}
+                    %thead
+                      %tr
+                        %th S.No.
+                        %th Sent On
+                        %th Text
+                        %th Sent By
+                    %tbody
+                      - @lead.system_messages.successful.order(created_at: :desc).each.with_index(1) do |sms, i|
+                        %tr
+                          %td= i
+                          %td= sms.created_at.strftime("%d-%b-%Y") rescue ""
+                          %td= sms.text
+                          %td= sms.user.name rescue ""
+      - if @lead_call_attempts.present?
+        .row
+          .col-lg-12
+            .card
+              .card-header
+                .float-right
+                  .input-group
+                    .input-group-btn
+                      - if @company.setting.present? && @company.enable_lead_log_export
+                        = link_to '#', class: "btn btn-primary btn-sm lead-hist-export" do
+                          = fa_icon "download"
+                          Export
+                %h4 Lead Call Attempt History
+              .card-body
+                .table-responsive
+                  %table.table.table-bordered.table-hover.dataTables.table-sm.responsive.nowrap.lead-hist-export{style: 'width:100%!important'}
+                    %thead
+                      %tr
+                        %th S.No.
+                        %th Attemped By
+                        %th Last Call Date
+                    %tbody
+                      - @lead_call_attempts.each.with_index(1) do |lead_call_attempt, i|
+                        %tr
+                          %td= i
+                          %td= lead_call_attempt.user.name rescue ""
+                          %td= lead_call_attempt.updated_at.strftime("%d-%m-%y %H:%M %p") rescue ""
+      .row
+        .col-lg-12
+          .card
+            .card-header
+              .float-right
+                .input-group
+                  .input-group-btn
+                    - if @company.setting.present? && @company.enable_lead_log_export
+                      = link_to '#', class: "btn btn-primary btn-sm export" do
+                        = fa_icon "download"
+                        Export
+              %h4 Updates
+            .card-body
+              .table-responsive
+                %table.table.table-bordered.table-hover.dataTables.table-sm.responsive.nowrap.export{style: 'width:100%!important'}
+                  %thead
+                    %tr
+                      %td Status From
+                      %td Status To
+                      %td Tentative Visit Planned From
+                      %td Tentative Visit Planned To
+                      %td Assign From
+                      %td Assign To
+                      %td Comment From
+                      %td Comment To
+                      %td By
+                      %td Date
+                  %tbody
+                    - @lead_logs.each do |ll|
+                      - audited_change = ll.audited_changes
+                      %tr
+                        %td= @company.statuses.find_by(id: audited_change["status_id"][0]).name rescue '-'
+                        %td= @company.statuses.find_by(id: audited_change["status_id"][1]).name rescue '-'
+                        %td= Time.zone.parse(audited_change["tentative_visit_planned"][0].strip).strftime("%d-%b-%Y %H:%M") rescue "-"
+                        %td= Time.zone.parse(audited_change["tentative_visit_planned"][1].strip).strftime("%d-%b-%Y %H:%M") rescue "-"
+                        %td= current_user.manageables.find_by(id: audited_change["user_id"][0]).name rescue '-'
+                        %td= current_user.manageables.find_by(id: audited_change["user_id"][1]).name rescue '-'
+                        %td.showmore= audited_change["comment"][0].strip.gsub(/\n/, '<br/>').html_safe rescue '-'
+                        %td.showmore= audited_change["comment"][1].strip.gsub(/\n/, '<br/>').html_safe rescue '-'
+                        %td= ll.user.name rescue '-'
+                        %td{"data-sort"=> "#{ll.created_at.strftime("%Y%m%d%H%M%s")}"}= ll.created_at.strftime("%d-%m-%y %H:%M %p")
+      .row
+        .col-lg-12
+          .card
+            .card-header
+              .float-right
+                .input-group
+                  .input-group-btn
+                    - if @company.setting.present? && @company.enable_lead_log_export
+                      = link_to 'Export1', class: "btn btn-primary btn-sm export1" do
+                        = fa_icon "download"
+                        Export
+              %h4 Incoming Call History
+            .card-body
+              .table-responsive
+                %table.table.table-bordered.table-hover.dataTable-sorting-false.table-sm.responsive.nowrap.export1{style: 'width:100%!important'}
+                  %thead
+                    %tr
+                      %td From
+                      %td To
+                      %td.sorter-false
+                        - if params["sort"].present? and params["sort"] == "desc"
+                          = link_to params.merge(key: "start_time", sort: "asc", incoming: true), class: "lead-collapse", "aria-controls" => "collapseOne", role: "button" do
+                            Start Time
+                        - else
+                          = link_to params.merge(key: "start_time", sort: "desc", incoming: true), class: "lead-collapse", "aria-controls" => "collapseOne", role: "button" do
+                            Start Time
+                      %td
+                        - if params["sort"].present? and params["sort"] == "desc"
+                          = link_to params.merge(key: "end_time", sort: "asc", incoming: true), class: "lead-collapse", "aria-controls" => "collapseOne", role: "button" do
+                            End Time
+                        - else
+                          = link_to params.merge(key: "end_time", sort: "desc", incoming: true), class: "lead-collapse", "aria-controls" => "collapseOne", role: "button" do
+                            End Time
+                      %td Direction
+                      %td OverAll Call Duration
+                      %td Call Status
+                      %td CallType
+                      %td Recodring Url
+                  %tbody
+                    - if params[:incoming] == 'true' && params["key"].present? && params["sort"].present?
+                      - @incoming_call_logs = @lead.call_logs.incoming.order("#{params['key']} #{params['sort']} NULLS FIRST")
+                    - else
+                      - @incoming_call_logs = @lead.call_logs.incoming.order(updated_at: :desc)
+                    - @incoming_call_logs.each do |call_log|
+                      %tr
+                        %td= call_log.display_from_number(current_user) rescue nil
+                        %td= call_log.display_to_number(current_user) rescue nil
+                        %td= call_log.start_time&.strftime("%e %b %Y,%l:%M:%S %p")
+                        %td= call_log.end_time&.strftime("%e %b %Y,%l:%M:%S %p")
+                        %td= call_log.direction
+                        %td= call_log.duration
+                        %td= call_log.status
+                        %td= call_log.call_type
+                        %td
+                          - if call_log.recording_url.present?
+                            %audio.player{:controls => ""}
+                              %source{:src => call_log.recording_url, :type => "audio/mp3"}
+                          - else
+                            N/A
+      .row
+        .col-lg-12
+          .card
+            .card-header
+              .float-right
+                .input-group
+                  .input-group-btn
+                    - if @company.setting.present? && @company.enable_lead_log_export
+                      = link_to '#', class: "btn btn-primary btn-sm export2" do
+                        = fa_icon "download"
+                        Export
+              %h4 Outgoing Call History
+            .card-body
+              .table-responsive
+                %table.table.table-bordered.table-hover.dataTable-sorting-false.table-sm.responsive.nowrap.export2{style: 'width:100%!important'}
+                  %thead
+                    %tr
+                      %td From
+                      %td To
+                      %td.sorter-false
+                        - if params["sort"].present? and params["sort"] == "desc"
+                          = link_to params.merge(key: "start_time", sort: "asc", incoming: false), class: "lead-collapse", "aria-controls" => "collapseOne", role: "button" do
+                            Start Time
+                        - else
+                          = link_to params.merge(key: "start_time", sort: "desc", incoming: false), class: "lead-collapse", "aria-controls" => "collapseOne", role: "button" do
+                            Start Time
+                      %td
+                        - if params["sort"].present? and params["sort"] == "desc"
+                          = link_to params.merge(key: "end_time", sort: "asc", incoming: false), class: "lead-collapse", "aria-controls" => "collapseOne", role: "button" do
+                            End Time
+                        - else
+                          = link_to params.merge(key: "end_time", sort: "desc", incoming: false), class: "lead-collapse", "aria-controls" => "collapseOne", role: "button" do
+                            End Time
+                      %td Direction
+                      %td OverAll Call Duration
+                      %td Call Status
+                      %td Recodring Url
+                      %td Executive Call Duration
+                      %td Executive Call Status
+                      %td Lead Call Duration
+                      %td Lead Call Status
+                  %tbody
+                    - if !params[:incoming] && params["key"].present? && params["sort"].present?
+                      - @call_logs = @lead.call_logs.not_incoming.order("#{params['key']} #{params['sort']} NULLS FIRST")
+                    - else
+                      - @call_logs = @lead.call_logs.not_incoming.order(updated_at: :desc)
+                    - @call_logs.each do |call_log|
+                      %tr
+                        %td= call_log.from_number rescue nil
+                        %td= call_log.display_to_number(current_user)
+                        %td= call_log.start_time&.strftime("%e %b %Y,%l:%M:%S %p")
+                        %td= call_log.end_time&.strftime("%e %b %Y,%l:%M:%S %p")
+                        %td= call_log.direction
+                        %td= call_log.duration
+                        %td= call_log.status
+                        %td
+                          - if call_log.recording_url.present?
+                            %audio.player{:controls => ""}
+                              %source{:src => call_log.recording_url, :type => "audio/mp3"}
+                          - else
+                            N/A
+                        %td= call_log.executive_call_duration
+                        %td= call_log.executive_call_status
+                        %td= call_log.lead_call_duration
+                        %td= call_log.lead_call_status
+:javascript
+  var player = new Plyr('#player');
+
+  $(".dataTable-sorting-false").dataTable({
+    "columnDefs":
+      [
+        { orderable: false, targets: [2,3] }
+      ],
+    "iDisplayLength": 50,
+    responsive: true,
+    bPaginate: false,
+    bFilter: false
+  });
+
+
+:css
+  .lead-collapse{
+    color: white;
+  }

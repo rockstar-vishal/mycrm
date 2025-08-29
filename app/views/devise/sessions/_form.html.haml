@@ -1,0 +1,45 @@
+.container-fluid
+  .flex-container{style:'background: #fff;'}
+    .row
+      .col-sm-6.order-2.order-sm-1.holder-login
+        #login
+          - company = Company.find_by(domain: request.host)
+          - if company.present?
+            - log_url = company.logo.url.present? ? "#{company.logo.url(:original)}" : 'logo.jpg'
+          -else
+            - log_url = 'logo.jpg'
+          = image_tag  "#{log_url}", class: 'logo-fix-size'
+          %p.login-heading
+            = t('general.login_to_system')
+          .login-form
+            = form_for('user', url: user_session_path, html: {class: 'form-horizontal'}) do |f|
+              = devise_error_messages!
+              .form-group
+                = f.email_field :email, autofocus: true, placeholder: 'Email', class: 'form-control'
+              .form-group#show_hide_password
+                .inner-addon.right-addon
+                  %a{ href: ''}
+                    = fa_icon 'eye-slash'
+                  = f.password_field :password,
+                    autocomplete: 'off',
+                    placeholder: 'Password',
+                    class: 'form-control'
+              .row
+                .col-sm-6
+                  = f.submit 'Login', class: 'btn btn-primary'
+                .col-sm-6.text-right{style:'margin-top:10px;'}
+                  = link_to 'Forgot Password', new_user_password_path
+              %p.login-text.small.mt-3
+                = 'By Clicking "Login" You Indicate that you have read and agree to be bound'
+                %span
+                  %u= 'Terms of service'
+      .col-sm-6.login-artwork.order-1.order-sm-2
+
+:css
+  .logo-fix-size{
+    max-width: 250px;
+    max-height: 100px;
+  }
+
+
+

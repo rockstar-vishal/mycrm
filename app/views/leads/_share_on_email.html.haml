@@ -1,0 +1,42 @@
+.row.alignFix
+  .col-md-3
+    .form-group
+      = label_tag "Email To"
+      = select_tag "email_to[]", options_from_collection_for_select(current_user.manageables, :id, :name, params[:email_to]), class: "form-control multi-select-list", multiple: true
+  .col-md-4
+    = label_tag "Subject"
+    = text_field_tag :subject, params[:subject],
+      class: "subject form-control", value: "Please check the following leads"
+  .col-md-5
+    .col-md-12
+      .col-md-2
+        = label_tag "Message"
+      .col-md-10
+        = text_area_tag :message, params[:message],
+          class: "form-control", :rows => 2, :cols => 30, :type=>"text"
+  = button_tag type: "submit", value: "send_email_to_team", class: 'btn btn-primary mt-3 mb-2' do
+    Send
+    = fa_icon "send"
+:css
+  li.sendemail{
+  float: left;
+  position: relative;
+  background-color: #F2F2F2;
+  border-bottom: 3px solid transparent;
+  }
+  li.sendemail.active, li.sendemail:hover {
+  border-bottom: 3px solid #fff;
+  }
+  .sendemail a{
+  color: #000!important;
+  }
+  li.sendemail.active a, li.sendemail:hover a{
+  color: #fff!important;
+  }
+  .subject.form-control{
+  width:100%!important;
+  }
+  .alignFix label{
+    text-align:left;
+    justify-content: left;
+  }

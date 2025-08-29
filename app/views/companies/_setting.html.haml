@@ -1,0 +1,117 @@
+.col-md-12
+  %label.mb-3.control-label{:for => "exampleInputFile"} Setting:
+  = f.fields_for :setting do |s|
+    .row
+      .col-md-2
+        = s.check_box :back_dated_ncd_allowed
+      .col-md-2
+        = s.check_box :czentrixcloud_enable
+      .col-md-2
+        = s.check_box :can_assign_all_users
+      .col-md-2
+        = s.check_box :default_lead_user_enable
+      .col-md-2
+        = s.check_box :can_show_lead_phone
+      .col-md-2
+        = s.check_box :enable_whatsapp_action
+      .col-md-2
+        = s.check_box :enable_email_action
+      .col-md-2
+        = s.check_box :global_validation
+      .col-md-2
+        = s.check_box :hide_next_call_date
+      .col-md-2
+        = s.check_box :enable_lead_direct_edit
+      .col-md-2
+        = s.check_box :enable_lead_tracking
+      .col-md-2
+        = s.check_box :call_response_report
+      .col-md-2
+        =s.check_box :edit_profile_not_allowed
+      .col-md-2
+        = f.check_box :round_robin_enabled
+      .col-md-2.project_wise_round_robin
+        = s.check_box :project_wise_round_robin, label: 'Project Wise Round Robin'
+      .col-md-2.project_wise_round_robin
+        = s.check_box :secondary_level_round_robin, label: 'Secondary Level Round Robin'
+
+      .col-md-2
+        = s.check_box :enable_callerdesk_sid
+      .col-md-2
+        = s.check_box :enable_presale_user_visits_report
+      .col-md-2
+        = s.check_box :visit_filter_enable
+      .col-md-2
+        = s.check_box :enable_call_center_dashboard
+      .col-md-2
+        = s.check_box :enable_broker_management
+      .col-md-2
+        = s.check_box :hide_lead_mobile_for_executive
+      .col-md-2
+        = s.check_box :can_send_lead_assignment_mail
+      .col-md-2
+        = s.check_box :way_to_voice_enabled
+      .col-md-2
+        = s.check_box :enable_site_visit_planned_tracker
+      .col-md-2
+        = s.check_box :enable_executive_export_leads
+      .col-md-2
+        = s.check_box :enable_executive_to_assign_users
+      .col-md-2
+        = s.check_box :enable_booking_done_fields
+      .col-md-2
+        = s.check_box :enable_country_in_project
+      .col-md-2
+        = s.check_box :enable_cards_on_advance_search
+      .col-md-2
+        = s.check_box :set_svp_default_7_days
+      .col-md-2
+        = s.check_box :enable_advance_visits
+      .col-md-2
+        = s.check_box :set_ncd_non_mandatory_for_booked_status
+      .col-md-2
+        = s.check_box :enable_ncd_sort_nulls_last
+      .col-md-2
+        = s.check_box :enable_meeting_executives
+      .col-md-2
+        = s.check_box :can_clone_lead
+      .col-md-2
+        = s.check_box :open_closed_lead_enabled, label: 'Open Closed Lead Enabled?'
+      .col-md-2
+        = s.check_box :can_add_users
+      .col-md-2
+        = s.check_box :enable_lead_log_export
+      .col-md-2
+        = s.check_box :fb_campaign_enabled
+      .col-md-2
+        = s.check_box :managerwise_closing_executive_active
+      .col-md-2
+        = s.check_box :can_delete_users
+      .col-md-2
+        = s.check_box :restrict_sv_form_duplicate_lead_visit
+      .col-md-2
+        = s.check_box :mobicomm_sms_service_enabled
+      .col-md-2
+        = s.check_box :is_sv_project_enabled
+      .col-md-2
+        = s.check_box :enable_source
+    %label.mt-3.control-label Biz Integration:
+    .row.mt-1
+      .col-md-2
+        = s.check_box :biz_integration_enable
+      .col-md-12#biz_integration_subfield
+        .row
+          .col-md-4
+            = s.check_box :client_integration_enable, label: 'Client Integration?'
+          .col-md-4
+            = s.check_box :broker_integration_enable, label: 'Cp Integration?'
+          .col-md-4
+            = s.check_box :inventory_integration_enable, label: 'Inventory Integration?'
+%br
+:javascript
+  const toggleProjectWiseRoundRobin = (flag) => flag === true ? $(".project_wise_round_robin").show() : $(".project_wise_round_robin").hide();
+  $(window).on("load",()=>toggleProjectWiseRoundRobin($("#company_round_robin_enabled").prop("checked")));
+  $("#company_round_robin_enabled").on("change", e=>toggleProjectWiseRoundRobin($(e.target).prop("checked")));
+  const toggleBizIntegration = (flag) => flag === true ? $("#biz_integration_subfield").show() : $("#biz_integration_subfield").hide();
+  $(window).on("load",()=>toggleBizIntegration($("#company_setting_attributes_biz_integration_enable").prop("checked")));
+  $("#company_setting_attributes_biz_integration_enable").on("change", e=>toggleBizIntegration($(e.target).prop("checked")));

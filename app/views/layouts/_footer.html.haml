@@ -1,0 +1,7 @@
+%footer.main-footer
+  %strong
+    Copyright © #{Time.now.year}
+    = succeed "." do
+      %a{:href => "#"}
+        = t('general.title')
+  All rights reserved.

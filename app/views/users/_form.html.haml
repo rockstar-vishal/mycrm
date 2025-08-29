@@ -1,0 +1,202 @@
+= bootstrap_form_for @user, url: (@user.new_record? ? users_path : user_path(@user.uuid)) do |f|
+  - if @user.errors.any?
+    #error_explanation
+      %h2
+        = pluralize(@user.errors.count, "error")
+        prohibited this User from being saved:
+      %ul
+        - @user.errors.full_messages.each do |message|
+          %li= message
+  - if current_user.is_sysad?
+    %hr
+    .row
+      .col-md-12
+        .form-group
+          = f.select :company_id, options_from_collection_for_select(Company.all, :id, :name, (f.object.company_id rescue nil)), :prompt=>'Select Company', label: "Select Company", class: 'form-control'
+
+  .row
+    .col-md-3.required
+      .form-group
+        = f.text_field :name, class: "form-control", placeholder: "Name"
+    .col-md-3.required
+      .form-group
+        = f.text_field :email, class: "form-control", placeholder: "Email"
+    .col-md-3.required
+      .form-group
+        = f.text_field :mobile, class: "form-control", placeholder: "Mobile Number"
+    .col-md-3.required
+      .form-group
+        = f.select :role_id, options_from_collection_for_select(current_user.accessible_roles, :id, :name, (f.object.role_id rescue nil)), {include_blank: "Select Role", label: 'Role'},{class: 'form-control', data: {supervisor_value: current_user.accessible_roles.supervisor.ids}}
+  .w-100
+  %hr
+  .row
+    .col-md-3
+      .form-group
+        = f.select :city_id, options_from_collection_for_select(City.all, :id, :name, (f.object.city_id rescue nil)), :prompt=>'Select City', class: 'form-control'
+    .col-md-3
+      .form-group
+        = f.text_field :state, class: "form-control", placeholder: "State"
+    .col-md-3
+      .form-group
+        = f.text_field :country, class: "form-control", placeholder: "Country"
+    .col-xs-8.col-md-3
+      .checkbox.icheck{:style => "margin-left:20px;    margin-top: 40px;"}
+        %label
+          = f.check_box :active, checked: true
+  - if current_user.is_super?
+    .row
+      - if current_user.company.setting.present? && current_user.company.enable_meeting_executives
+        .col-md-3
+          .checkbox.icheck{:style => "margin-left:20px;    margin-top: 40px;"}
+            %label
+              = f.check_box :is_meeting_executive
+      - if current_user.company.is_allowed_for_visits?('user_id')
+        .col-md-3
+          .checkbox.icheck{:style => "margin-left:20px;    margin-top: 40px;"}
+            %label
+              = f.check_box :is_calling_executive, 'Is Calling Executive?'
+      .col-xs-8.col-md-3
+        .checkbox.icheck{:style => "margin-left:20px;    margin-top: 40px;"}
+          %label
+            = f.check_box :click_to_call_enabled
+      - if current_user.company.exotel_enabled?
+        .col-md-4
+          .form-group#exotel_sid
+            = f.select :exotel_sid_id, options_from_collection_for_select(current_user.company.exotel_sids.active, :id, :number, f.object.exotel_sid_id), {:prompt =>"Select Click To Calling Number"}, class: 'form-control'
+      - if current_user.company.mcube_enabled?
+        .col-md-4
+          .form-group#exotel_sid
+            = f.select :mcube_sid_id, options_from_collection_for_select(current_user.company.mcube_sids.active, :id, :number, f.object.mcube_sid_id), {:prompt =>"Select Click To Calling Number"}, class: 'form-control'
+      - if current_user.company.czentrixcloud_enable
+        .col-md-3#czentrixcloud
+          .form-group
+            = f.text_field :agent_id, class: "form-control", placeholder: "CZentrixCloud"
+      .col-md-3
+        .checkbox.icheck{:style => "margin-left:20px;    margin-top: 40px;"}
+          %label
+            = f.check_box :can_import
+      .col-md-3
+        .checkbox.icheck{:style => "margin-left:20px;margin-top: 40px;"}
+          %label
+            = f.check_box :can_delete_lead
+      .col-md-3
+        .checkbox.icheck{:style => "margin-left:20px;margin-top: 40px;"}
+          %label
+            = f.check_box :loan_enabled
+      .col-md-3
+        .checkbox.icheck{:style => "margin-left:20px;margin-top: 40px;"}
+          %label
+            = f.check_box :is_cross_pitch, label: "Cross Pitch"
+      - if @user.company.round_robin_enabled?
+        .col-md-3
+          .checkbox.icheck{:style => "margin-left:20px;    margin-top: 40px;"}
+            %label
+              = f.check_box :round_robin_enabled
+      - if @user.company.setting.present? && @user.company.setting.enable_callerdesk_sid
+        .col-md-4.ch-select
+          .form-group
+            = f.select :caller_desk_project_id, options_from_collection_for_select(@user.company.projects.active, :id, :name, @user.caller_desk_project_id), {prompt: true, label: 'CallDesk Project'}, class: 'form-control chosen-select'
+    .w-100
+    %hr
+    .row
+      .col-md-12
+        .form-group
+          %label{:for => "exampleInputFile"} User Manager
+          %br/
+          .row
+            .col-md-12
+              .form-group
+                #user_managers.row
+                  = f.fields_for :manager_mappings do |manager_mapping|
+                    = render "manager_mapping_fields", :f => manager_mapping
+                  .links
+                    = link_to_add_association "Add Managers", f, :manager_mappings, class: "btn btn-primary m-3"
+  - if @user.company.present? && @user.company.secondary_level_round_robin
+    .w-100
+      %hr
+      .row
+        .col-md-12
+          .form-group
+            %label{:for => "exampleInputFile"} Round Robin Settings
+            %br/
+            .row
+              .col-md-12
+                .form-group
+                  #user_managers.row
+                    = f.fields_for :round_robin_settings do |rrs|
+                      = render "round_robin_setting_fields", :f => rrs
+                    .links
+                      = link_to_add_association "Add Round Robin Configuration", f, :round_robin_settings, class: "btn btn-primary m-3"
+  .w-100
+  #users-projects-sec{:style => ("display:none;" unless current_user.accessible_roles.supervisor.ids.include?(f.object.role_id))}
+    .row
+      .col-md-12
+        .form-group
+          %label{:for => "exampleInputFile"} User Projects
+          %br/
+          .row
+            .col-md-12
+              .form-group
+                #user_managers.row
+                  = f.fields_for :users_projects do |project|
+                    = render "users_project_fields", :f => project
+                  .links
+                    = link_to_add_association "Add Projects", f, :users_projects, class: "btn btn-primary m-3"
+  .w-100
+  %hr
+  .row
+    .col-md-6
+      .form-group
+        = f.password_field :password, class: 'form-control', placeholder: "Password"
+    .col-md-6
+      .form-group
+        = f.password_field :password_confirmation, class: 'form-control', placeholder: "Confirm Password"
+  .w-100
+  %hr
+  %div{align: "center"}
+    .col-md-12
+      .form-group
+        = button_tag type: "submit", class: "btn btn-primary", data: {disable_with: "Please Wait..."} do
+          = fa_icon "floppy-o"
+          Save
+        = link_to :back, class: "btn btn-danger" do
+          = fa_icon "close"
+          Cancel
+
+:javascript
+  var toggleExotelSid = function(shouldShowExotelSid){
+    if(shouldShowExotelSid){
+      $("#exotel_sid").show();
+    }else{
+      $("#exotel_sid").hide();
+
+    }
+  }
+  toggleExotelSid($("#user_click_to_call_enabled").is(':checked'));
+  $("#user_click_to_call_enabled").on("change", function(e){
+    toggleExotelSid($(this).is(':checked'));
+  });
+
+  var toggleczentrixcloud = function(shouldshowczentrixcloud){
+    if(shouldshowczentrixcloud){
+      $("#czentrixcloud").show();
+    }else{
+      $("#czentrixcloud").hide();
+
+    }
+  }
+  toggleczentrixcloud($("#user_click_to_call_enabled").is(':checked'));
+  $("#user_click_to_call_enabled").on("change", function(e){
+    toggleczentrixcloud($(this).is(':checked'));
+  });
+
+  $("#user_role_id").change(function () {
+    var supervisor = $('#user_role_id').data('supervisor-value');
+    var role_value = $(this).val();
+    var is_supervisor = (supervisor !=null && supervisor.includes(parseInt(role_value)));
+    if (is_supervisor){
+      $('#users-projects-sec').show();
+    } else {
+      $('#users-projects-sec').hide();
+    }
+  });

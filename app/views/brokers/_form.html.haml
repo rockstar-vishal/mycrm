@@ -1,0 +1,47 @@
+= bootstrap_form_for @broker,  url: (@broker.new_record? ? brokers_path : broker_path(@broker.uuid)), remote: true do |f|
+  - if @broker.errors.any?
+    #error_explanation
+      %h2
+        = pluralize(@broker.errors.count, "error")
+        prohibited this from being saved:
+      %ul
+        - @broker.errors.full_messages.each do |message|
+          %li= message
+  - broker_form = current_user.company.broker_configuration
+  .row
+    .col-md-6.required
+      .form-group
+        = f.text_field :name, class: "form-control", placeholder: "Name"
+    .col-md-6{class: ("required" if broker_form.present? && broker_form.required_fields.include?("email"))}
+      .form-group
+        = f.text_field :email, class: "form-control", placeholder: "Email"
+  .row
+    .col-md-6.required
+      .form-group
+        = f.text_field :mobile, class: "form-control", placeholder: "Mobile"
+    .col-md-6{class: ("required" if broker_form.present? && broker_form.required_fields.include?("other_contacts"))}
+      .form-group
+        = f.text_field :other_contacts, class: "form-control", placeholder: "Other Contact"
+  .row
+    .col-md-6{class: ("required" if broker_form.present? && broker_form.required_fields.include?("firm_name"))}
+      .form-group
+        = f.text_field :firm_name, class: "form-control", placeholder: "Firm Name"
+    .col-md-6{class: ("required" if broker_form.present? && broker_form.required_fields.include?("locality"))}
+      .form-group
+        = f.text_field :locality, class: "form-control", placeholder: "Locality"
+  .row
+    .col-md-6{class: ("required" if broker_form.present? && broker_form.required_fields.include?("rm_id"))}
+      .form-group
+        = f.select :rm_id, options_from_collection_for_select(@company.users, :id, :name, (f.object.rm_id || current_user.id)), {include_blank: "Select RM", label: 'RM'}, class: "form-control"
+      .col-md-6{class: ("required" if broker_form.present? && broker_form.required_fields.include?("rera_number"))}
+        .form-group
+          = f.text_field :rera_number, class: "form-control", placeholder: "Rera Number"
+  .row
+    .col-md-12
+      .form-group
+        = button_tag type: "submit", class: "btn btn-primary", data: {disable_with: "Please Wait..."} do
+          = fa_icon "floppy-o"
+          Save
+        = link_to brokers_path, class: "btn btn-danger" do
+          = fa_icon "close"
+          Cancel

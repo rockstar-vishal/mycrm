@@ -1,0 +1,60 @@
+.content-wrapper
+  .content-header
+    .container-fluid
+      .row.mb-2
+        .col-md-9
+          %ol.breadcrumb
+            %li.breadcrumb-item
+              %a{:href => "/"} Home
+            %li.breadcrumb-item.active Users
+          %h1.m-0.text-dark Users
+  .content
+    .container-fluid
+      .row
+        .col-lg-12
+          .card
+            .card-header
+              - if current_user.may_add_user?
+                .float-right
+                  .input-group
+                    .input-group-btn
+                      = link_to 'Add New User', new_user_path,
+                        class: 'btn btn-primary float-right btn-sm'
+              %h3.mb-0 Users
+            .card-body
+              .table-responsive
+                %table.table.table-bordered.table-hover.dataTables.table-sm.responsive.nowrap{style: 'width:100%!important'}
+                  %thead
+                    %tr
+                      %th Full Name
+                      %th Email
+                      %th Contact No.
+                      %th Role Name
+                      - if current_user.is_sysad?
+                        %th Company
+                      %th Added On
+                      %th Status
+                      %th Action
+                  %tbody
+                    - @users.each do |user|
+                      %tr
+                        %td= link_to user.name, user_path(user.uuid), remote: true
+                        %td= user.email
+                        %td= user.mobile
+                        %td= user.role.name rescue nil
+                        - if current_user.is_sysad?
+                          %td= user.company.name rescue nil
+                        %td= user.created_at.strftime("%d %B %Y : %I.%M %p")
+                        %td= (user.active? ? "Active" : "Inactive")
+                        %td
+                          = link_to edit_user_path(user.uuid), class: "btn btn-primary  btn-xs m-r-5",
+                            style: "padding: 0px; width: 20px;" do
+                            = fa_icon "pencil"
+                          - if current_user.is_super? && user.id != current_user.id && current_user.company.setting.present? && current_user.company.can_delete_users
+                            = link_to user_path(user.uuid), class: "btn btn-danger", method: :delete,
+                              data: {:confirm => "Would you like to permanently delete this user?", "commit-class" => "btn btn-success", "cancel-class" => "btn btn-danger"}, style: "padding: 0px; width: 20px;" do
+                              = fa_icon "trash-o"
+          - if @users.present?
+            .pagination-custom-holder
+              %strong{style: "margin-left: 0;"} Users Count - #{@users.total_entries}
+              = will_paginate @users, :class  =>  "ct-pag"

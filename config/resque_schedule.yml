@@ -1,0 +1,11 @@
+ImportHousingLeads:
+  cron: "0 */3 * * *"
+ImportCommonFloorLeads:
+  cron: "0 */3 * * *"
+NextCallReminder:
+  cron: "*/15 * * * *"
+UpdateVisitStatus:
+  cron: "15 0 * * *"
+SiteVisitPlanned:
+  cron: "30 9 * * *"
+  cron: "30 17 * * *"

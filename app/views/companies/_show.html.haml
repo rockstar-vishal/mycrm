@@ -1,0 +1,47 @@
+.modal-header
+  %h5.modal-title Preview Company
+  %button.close{"aria-label" => "Close", "data-dismiss" => "modal", :type => "button"}
+    %span{"aria-hidden" => "true"} ×
+.modal-body
+  %h4.lead-heading.mt-2.mb-2 Company Basic Detail
+  .row
+    .col-md-6
+      .form-group
+        %span.lead-title Name
+        %span.lead-info
+          = @company.name
+    .col-md-6
+      .form-group
+        %span.lead-title Domain
+        %span.lead-info
+          = @company.domain
+    .col-md-6
+      .form-group
+        %span.lead-title Sms Mask
+        %span.lead-info
+          = @company.sms_mask
+    .col-md-6
+      .form-group
+        %span.lead-title Dead status
+        %span.lead-info
+          = @company.dead_status_name
+    .col-md-6
+      .form-group
+        %span.lead-title New Lead Status
+        %span.lead-info
+          = @company.new_status_name
+    .col-md-6
+      .form-group
+        %span.lead-title Expected site visit
+        %span.lead-info
+          = @company.expected_site_visit_name
+    .col-md-6
+      .form-group
+        %span.lead-title Booking done
+        %span.lead-info
+          = @company.booking_done_name
+    .col-md-6
+      .form-group
+        %span.lead-title Hot status
+        %span.lead-info
+          = @company.hot_status_name

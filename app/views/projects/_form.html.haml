@@ -1,0 +1,75 @@
+= bootstrap_form_for @project, url: (@project.new_record? ? projects_path : project_path(@project.uuid)), remote: true do |f|
+  - if @project.errors.any?
+    #error_explanation
+      %h2
+        = pluralize(@project.errors.count, "error")
+        prohibited this Project from being saved:
+      %ul
+        - @project.errors.full_messages.each do |message|
+          %li= message
+  .row
+    .col-md-4.required
+      .form-group
+        = f.text_field :name, class: "form-control", placeholder: "Name"
+    - if current_user.company.setting.present? && current_user.company.enable_country_in_project
+      .col-md-4
+        .form-group
+          = f.select :country_id, options_from_collection_for_select(Country.all, :id, :name, f.object.country_id), {include_blank: "Select Country"}, class: 'form-control'
+    .col-md-4
+      .form-group
+        = f.select :city_id, options_from_collection_for_select(City.all, :id, :name, f.object.city_id), {include_blank: "Select City"}, class: 'form-control'
+    .col-md-4
+      = f.text_field :address, class: 'form-control'
+    - if @project.company.integrations.for_housing.present?
+      .col-md-4
+        = f.number_field :housing_token, class: 'form-control', label: "Housing Project ID"
+    .col-md-4
+      = f.text_field :mb_token, class: 'form-control', label: "MB Project ID"
+    .col-md-4
+      = f.text_field :nine_token, class: 'form-control', label: "99 Acres Project ID"
+    .col-md-4
+      = f.check_box :cross_pitch, class: 'form-control', label: "Cross Pitch?"
+    .col-md-4
+      = f.text_field :property_codes, class: 'form-control', value: f.object.property_codes&.join(','), label: "Property Codes", multiple: true
+  .w-100
+  -if current_user.company.round_robin_enabled? && current_user.company.project_wise_round_robin
+    %hr
+    .row
+      .col-md-6
+        .form-group.ch-select
+          = f.select :dyn_assign_user_ids, options_from_collection_for_select(current_user.manageables.round_robin_users, :id, :name, f.object.dyn_assign_user_ids), { label: 'Round Robin User', include_blank: false, include_hidden: false}, {class: 'form-control chosen-select', multiple: true}
+  .w-100
+  %hr
+  .row
+    .col-md-2
+      .form-group.mt-4.checkboxSpacing
+        = f.check_box :active, class: 'custom-checkbox'
+    .col-md-2
+      .form-group.mt-4.checkboxSpacing
+        = f.check_box :is_default, label: 'Default', class: 'custom-checkbox'
+  .w-100
+    %hr
+    .col-md-12
+      .form-group
+        %label.col-sm-2.control-label{:for => "exampleInputFile"} FB Ads Id:
+        #fb_ads_ids.row
+          = f.fields_for :fb_ads_ids do |fb_add|
+            = render "fb_ads_id_fields", :f => fb_add
+          .links.m-4
+            = link_to_add_association "Add ADS IDs", f, :fb_ads_ids, class: "btn btn-primary"
+    .w-100
+  %div{align: "center"}
+    .col-md-12
+      .form-group
+        = button_tag type: "submit", class: "btn btn-primary", data: {disable_with: "Please Wait..."} do
+          = fa_icon "floppy-o"
+          Save
+        = link_to projects_path, class: "btn btn-danger" do
+          = fa_icon "close"
+          Cancel
+:javascript
+  $('.chosen-select').chosen({
+    allow_single_deselect: true,
+    no_results_text: 'No results matched',
+    width: 'auto'
+  });

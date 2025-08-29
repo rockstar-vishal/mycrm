@@ -1,0 +1,5 @@
+.nested-fields.col-md-3{:style => "border: 1px dashed #999; border-radius: 5px; padding: 20px;"}
+  .form-group
+    = f.select :status_id, options_from_collection_for_select(@company.statuses, :id, :name, f.object.status_id), {prompt: true, label: 'Status'}, class: 'form-control'
+  %center
+    = link_to_remove_association "Remove", f, :class=>"btn btn-danger"

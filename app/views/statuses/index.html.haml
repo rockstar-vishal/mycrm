@@ -1,0 +1,43 @@
+.content-wrapper
+  .content-header
+    .container-fluid
+      .row.mb-2
+        .col-md-9
+          %ol.breadcrumb
+            %li.breadcrumb-item
+              %a{:href => "/"} Home
+            %li.breadcrumb-item.active Statues
+          %h1.m-0.text-dark Statuses
+  .content
+    .container-fluid
+      .row
+        .col-lg-12
+          .card
+            .card-header
+              .box-header.row
+                .box-tools.col-md-12{:style=>"top:inherit;"}
+                  .float-right
+                    .input-group
+                      .input-group-btn
+                        = link_to 'Add New Status', new_status_path, remote: true,
+                          class: 'btn btn-primary float-right btn-sm'
+            .card-body
+              .table-responsive
+                %table.table.table-bordered.table-hover.dataTables.table-sm.responsive.nowrap{style: 'width:100%!important'}
+                  %thead
+                    %tr
+                      %th.all Name
+                      %th Class Name
+                      %th.all Action
+                  %tbody
+                    - @statuses.each do |status|
+                      %tr
+                        %td
+                          = status.name
+                        %td= status.class_name
+                        %td
+                          = link_to (fa_icon "pencil"), edit_status_path(status),remote: true, class: "btn btn-primary btn-sm"
+          - if @statuses.present?
+            .pagination-custom-holder
+              %strong{style: "margin-left: 0;"} Status Count - #{@statuses.total_entries}
+              = will_paginate @statuses, :class  =>  "ct-pag"

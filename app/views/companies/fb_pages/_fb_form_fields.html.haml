@@ -1,0 +1,48 @@
+.modal-header
+  %h5.modal-title
+    = @form_name
+  %button.close{"aria-label" => "Close", "data-dismiss" => "modal", :type => "button"}
+    %span{"aria-hidden" => "true"} ×
+.modal-body
+  = bootstrap_form_for @fb_form do |f|
+    %table.table
+      %thead
+        %tr
+          %th Key
+          %th Value
+      %tbody
+        - (@form_fields || []).each do |field|
+          %tr
+            %td
+              = field["key"]
+            %td
+              = field["label"]
+    .row
+      .col-md-12
+        .form-group
+          = f.select :project_id, options_from_collection_for_select(current_user.company.projects.active, :id, :name, @fb_form.project_id), {prompt: true, label: 'Select Project'}, class: 'form-control multiselect', required: true
+          = f.hidden_field :form_no, value: @fb_form.form_no
+          = f.hidden_field :title, value: @fb_form.title
+          = f.hidden_field :fb_id, value: params[:fb_id]
+    - if current_user.company.is_allowed_field?('enquiry_sub_source_id')
+      .col-md-3
+        .form-group
+          = f.select :enquiry_sub_source_id, options_from_collection_for_select(current_user.company.sub_sources, :id, :name, f.object.enquiry_sub_source_id), {include_blank: "Select Sub Source", label: 'Sub Source'}, class: "form-control"
+    - if current_user.company.fb_campaign_enabled
+      .col-md-3
+        .form-group
+          = f.select :campaign_id, options_from_collection_for_select(current_user.company.campaigns, :id, :title, f.object.campaign_id), {include_blank: "Select Campaign", label: 'Campaign'}, class: "form-control"
+    - if current_user.company.is_allowed_field?('customer_type')
+      .col-md-3
+        .form-group
+          = f.select :customer_type, options_for_select(Lead.customer_types.keys, f.object.customer_type), { prompt: 'Please Select'},{class: 'form-control'}
+    .row
+      .col-md-12
+        .form-group
+          = f.text_area :bind_comment, class: "form-control", label: "Bind Comments", placeholder: "(Optional)"
+    %div{align: "center"}
+      .col-md-12
+        .form-group
+          = button_tag type: "submit", class: "btn btn-primary", data: {disable_with: "Please Wait..."} do
+            = fa_icon "floppy-o"
+            Save

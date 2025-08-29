@@ -1,0 +1,39 @@
+.content-wrapper
+  .content-header
+    .container-fluid
+      .row.mb-2
+        .col-sm-12
+          %ol.breadcrumb
+            %li.breadcrumb-item
+              %a{:href => "/"} Home
+            %li.breadcrumb-item.active Import FB Pages
+        .col-sm-12
+          %h1.m-0.text-dark Results
+  .content
+    .container-fluid
+      .row
+        .col-lg-12
+          .card
+            .card-header
+              %h3 Import FB Pages - Results
+            .card-body
+              .panel.panel-primary
+                .panel-body
+                  %strong
+                    Failures (#{@errors.count}):
+                  %br/
+                  %ul
+                    - @errors.each do |error|
+                      %li
+                        %strong{:style => "color: #f00"}
+                          = "#{error[:name]}" " - " "#{error[:error]}"
+                  %br/
+                  %br/
+                  %strong
+                    Success (#{@success.count}):
+                  %br/
+                  %ul
+                    - @success.each do |success|
+                      %li
+                        %strong{:style => "color: #008a1a"}
+                          = "#{success}"

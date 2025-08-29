@@ -1,0 +1,40 @@
+.content-wrapper
+  .content-header
+    .container-fluid
+      .row.mb-2
+        .col-md-9
+          %ol.breadcrumb
+            %li.breadcrumb-item
+              %a{:href => "/"} Home
+            %li.breadcrumb-item.active Stage
+          %h1.m-0.text-dark Stage
+  .content
+    .container-fluid
+      .row
+        .col-lg-12
+          .card
+            .card-header
+              - if current_user.is_sysad?
+                .float-right
+                  .input-group
+                    .input-group-btn
+                      = link_to 'Add New Stage', new_stage_path, remote: true, class: 'btn btn-primary float-right btn-sm'
+              %h3.mb-0 Stages
+            .card-body
+              .table-responsive
+                %table.table.table-bordered.table-hover.dataTables.table-sm.responsive.nowrap{style: 'width:100%!important'}
+                  %thead
+                    %tr
+                      %th.all Name
+                      %th.all Action
+                  %tbody
+                    - @stages.each do |stage|
+                      %tr
+                        %td
+                          = stage.name
+                        %td
+                          = link_to (fa_icon "pencil"), edit_stage_path(stage.uuid), remote: true, class: "btn btn-primary btn-sm"
+          - if @stages.present?
+            .pagination-custom-holder
+              %strong{style: "margin-left: 0;"} Stages Count - #{@stages.count}
+              = will_paginate @stages, :class  =>  "ct-pag"

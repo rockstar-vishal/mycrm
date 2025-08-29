@@ -1,0 +1,35 @@
+= bootstrap_form_for @source, remote: true do |f|
+  - if @source.errors.any?
+    #error_explanation
+      %h2
+        = pluralize(@source.errors.count, "error")
+        prohibited this Source from being saved:
+      %ul
+        - @source.errors.full_messages.each do |message|
+          %li= message
+  .row
+    .col-md-6
+      .form-group
+        = f.text_field :name, class: "form-control", placeholder: "Enquiry Source"
+    .col-md-6
+      .form-group
+        = f.select :active, [["Active", true], ["Inactive", false]],
+          {include_blank: "Status"}, class: 'form-control'
+    .col-md-2
+      .form-group
+        = f.check_box :is_cp, class: 'form-control'
+    .col-md-2
+      .form-group
+        = f.check_box :is_digital, class: 'form-control'
+    .col-md-2
+      .form-group
+        = f.check_box :is_reference, class: 'form-control'
+  %div{align: "center"}
+    .col-md-12
+      .form-group
+        = button_tag type: "submit", class: "btn btn-primary", data: {disable_with: "Please Wait..."} do
+          = fa_icon "floppy-o"
+          Save
+        = link_to sources_path, class: "btn btn-danger" do
+          = fa_icon "close"
+          Cancel

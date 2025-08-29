@@ -1,0 +1,59 @@
+.content-wrapper
+  .content-header
+    .container-fluid
+      .row.mb-2
+        .col-md-9
+          %ol.breadcrumb
+            %li.breadcrumb-item
+              %a{:href => "/"} Home
+            %li.breadcrumb-item.active Campaigns
+          %h1.m-0.text-dark Campaigns
+  .content
+    .container-fluid
+      .row
+        .col-lg-12
+          .card
+            .card-header
+              .float-right
+                .input-group
+                  .input-group-btn
+                    = link_to 'Add Campaign', new_campaign_path, remote: true, class: 'btn btn-primary float-right btn-sm'
+              %h4.mb-0 Campaigns
+
+            .card-body
+              .table-responsive
+                %table.table.table-bordered.table-hover.dataTables.table-sm.responsive.nowrap{style: 'width:100%!important'}
+                  %thead
+                    %tr
+                      %th.all Sr.
+                      %th.all Title
+                      %th.all Start Date
+                      %th.all End Date
+                      %th.all Budget
+                      %th.all Source
+                      %th.all Action
+                  %tbody
+                    - @campaigns.each.with_index(1) do |camp,i|
+                      %tr
+                        %td
+                          = i
+                        %td
+                          = camp.title
+                        %td
+                          = camp.start_date
+                        %td
+                          = camp.end_date
+                        %td
+                          = fa_icon "rupee"
+                          = Utility.to_words(camp.budget)
+                        %td
+                          = camp.source.name
+                        %td
+                          = link_to (fa_icon "pencil"), edit_campaign_path(camp.uuid), remote: true, class: "btn btn-primary btn-sm"
+                          = link_to campaign_path(camp.uuid), class: "btn btn-danger", method: :delete,
+                              data: {:confirm => "Would you like to permanently delete this Campaign?", "commit-class" => "btn btn-success", "cancel-class" => "btn btn-danger"}, style: "padding: 0px; width: 20px;" do
+                            = fa_icon "trash-o"
+          - if @campaigns.present?
+            .pagination-custom-holder
+              %strong{style: "margin-left: 0;"} Templates Count - #{@campaigns.count}
+              = will_paginate @campaigns, :class  =>  "ct-pag"

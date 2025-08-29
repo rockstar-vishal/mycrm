@@ -1,0 +1,47 @@
+.content-wrapper
+  .content-header
+    .container-fluid
+      .row.mb-2
+        .col-md-9
+          %ol.breadcrumb
+            %li.breadcrumb-item
+              %a{:href => "/"} Home
+            %li.breadcrumb-item.active Trends
+          %h1.m-0.text-dark Trends
+  .content
+    .container-fluid
+      .row
+        .col-lg-12
+          .card
+            .card-header
+              .pull-right
+                %a#adv-search{:href => "javascript:void(0);", :style => "margin-left:-2px;", :class=>"btn btn-primary btn-sm"}
+                  Advanced Search
+                  %i.fa.fa-angle-down
+              = render 'reports_button', locals: {report_name: :trends}
+            #adv-searchbox.box-body
+              = form_tag nil, method: :get, class: "filter-search-menu" do
+                .card-header
+                  .custom-search
+                    .row
+                      .col-md-6
+                        = render partial: 'shared/trends_range_selector'
+                      .col-md-3
+                        = render partial: 'shared/projects_filter'
+                      - if current_user.check_source_presence
+                        .col-md-3
+                          = render partial: 'shared/sources_filter'
+                      .col-md-3
+                        = render partial: 'shared/users_filter'
+                      .col-md-3
+                        = render partial: 'shared/managers_filter'
+                      .col-md-3
+                        .form-group
+                          %label.label-block &nbsp;
+                          = button_tag type: "submit", class: "btn btn-primary btn-sm pd-fixes align-fixes" do
+                            = fa_icon "search"
+                          = link_to nil, class: "btn btn-primary btn-sm pd-fixes align-fixes" do
+                            = fa_icon "refresh"
+            .card-body
+              .chart-canvas.d-none.d-sm-block
+                = area_chart [{name: "Leads Generated", data: @lead_gen.map{|k| [k['created_date'], k['count']]}}, {name: "Visits Done", data: @visits.map{|k| [k['visit_date'], k['count']]}}, {name: "Conversions", data: @conversions.map{|k| [k['conversion_date'], k['count']]}}], download: true, zeros: true, library: {animation: {easing: 'easeOutQuart'}}

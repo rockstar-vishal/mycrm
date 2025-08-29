@@ -1,0 +1,235 @@
+#adv-searchbox.box-body
+  = form_tag nil, method: :get, class: "filter-search-menu" do
+    = hidden_field_tag :is_advanced_search, true
+    .row
+      .col-xs-6.col-md-6
+        .form-group
+          = select_tag :save_search_id, options_from_collection_for_select(current_user.search_histories, :id, :name, params[:save_search_id]), prompt: "Select from Saved Searches", class: "form-control"
+      .col-xs-6.col-md-6
+        .form-group
+          = button_tag type: "submit", class: "btn btn-primary btn-flatbtn" do
+            = fa_icon "search"
+            Search Saved
+      .col-xs-6.col-md-2
+        .form-group
+          = text_field_tag :name, params[:name], class: "form-control", placeholder: "Customer Name"
+      .col-xs-6.col-md-2
+        .form-group
+          = text_field_tag :mobile, params[:mobile], class: "form-control", placeholder: "Mobile No."
+      .col-xs-6.col-md-2
+        .form-group
+          = text_field_tag :other_phones, params[:other_phones], class: "form-control", placeholder: "Other Phones"
+      .col-xs-6.col-md-2
+        .form-group
+          = text_field_tag :email, params[:email], class: "form-control", placeholder: "Email"
+      .col-xs-6.col-md-2
+        .form-group
+          = select_tag :project_ids, options_from_collection_for_select(current_user.company.projects, :id, :name, params[:project_ids]), multiple: true, class: "form-control multi-select-list", data: {prompt_name: 'Project'}
+      .col-xs-6.col-md-2
+        .form-group
+          = text_field_tag :lead_no, params[:lead_no], class: "form-control", placeholder: "Lead Number"
+      - if current_user.check_source_presence
+        .col-xs-6.col-md-4
+          .form-group
+            = select_tag :source_id, options_from_collection_for_select(current_user.company.sources, :id, :name, params[:source_id]), prompt: "Lead Source", class: "form-control multi-select-list", multiple: true, data: {prompt_name: 'Source'}
+      - if @company.index_fields.include?("sub_source")
+        .col-xs-6.col-md-2
+          .form-group
+            = text_field_tag :sub_source, params[:sub_source], class: "form-control", placeholder: "Sub source"
+      - if @company.index_fields.include?("enquiry_sub_source_id")
+        .col-xs-6.col-md-2
+          .form-group
+            = select_tag :sub_source_ids, options_from_collection_for_select(current_user.company.sub_sources, :id, :name, params[:sub_source_ids]), class: "form-control multi-select-list", multiple: true, data: {prompt_name: 'Sub Source'}
+      - if @company.is_allowed_field?("customer_type")
+        .col-xs-6.col-md-2
+          .form-group
+            = select_tag :customer_type, options_for_select(Lead.customer_types, params[:customer_type]), class: "form-control", prompt: 'Customer Type'
+      -if @company.index_fields.include?("budget")
+        .col-xs-6.col-md-2
+          .form-group
+            = text_field_tag :budget_from, params[:budget_from], class: "form-control", placeholder: "Budget From (Rs)"
+      -if @company.index_fields.include?("budget")
+        .col-xs-6.col-md-2
+          .form-group
+            = text_field_tag :budget_upto, params[:budget_upto], class: "form-control", placeholder: "Budget Upto (Rs)"
+      .col-xs-6.col-md-2
+        .form-group
+          .input-group
+            .input-group-addon
+              = fa_icon "calendar"
+            = text_field_tag :ncd_from, params[:ncd_from], class: "form-control datetimepicker", placeholder: "Next Call Date From"
+      .col-xs-6.col-md-2
+        .form-group
+          .input-group
+            .input-group-addon
+              = fa_icon "calendar"
+            = text_field_tag :ncd_upto, params[:ncd_upto], class: "form-control datetimepicker", placeholder: "Next Call Date To"
+      .col-xs-6.col-md-2
+        .form-group
+          .input-group
+            .input-group-addon
+              = fa_icon "calendar"
+            = text_field_tag :created_at_from, params[:created_at_from], class: "form-control dateFormat", placeholder: "Created At From"
+      .col-xs-6.col-md-2
+        .form-group
+          .input-group
+            .input-group-addon
+              = fa_icon "calendar"
+            = text_field_tag :created_at_upto, params[:created_at_upto], class: "form-control dateFormat", placeholder: "Created At To"
+      .col-xs-6.col-md-2
+        .form-group
+          .input-group
+            .input-group-addon
+              = fa_icon "calendar"
+            = text_field_tag :visited_date_from, params[:visited_date_from], class: "form-control dateFormat", placeholder: "Visited Date From"
+      .col-xs-6.col-md-2
+        .form-group
+          .input-group
+            .input-group-addon
+              = fa_icon "calendar"
+            = text_field_tag :visited_date_upto, params[:visited_date_upto], class: "form-control dateFormat", placeholder: "Visited Date To"
+      - if current_user.company.is_allowed_field?("lease_expiry_date")
+        .col-xs-6.col-md-2
+          .form-group
+            .input-group
+              .input-group-addon
+                = fa_icon "calendar"
+              = text_field_tag :expired_from, params[:expired_from], class: "form-control dateFormat", placeholder: "Expired From"
+        .col-xs-6.col-md-2
+          .form-group
+            .input-group
+              .input-group-addon
+                = fa_icon "calendar"
+              = text_field_tag :expired_upto, params[:expired_upto], class: "form-control dateFormat", placeholder: "Expired Upto"
+      .w-100
+      .col-xs-6.col-md-3
+        .form-group
+          = label_tag 'Status'
+          = select_tag "lead_statuses", options_from_collection_for_select(current_user.company.statuses, :id, :name, params[:lead_statuses]), class: "form-control multi-select-list", multiple: true, data: {prompt_name: 'Status'}
+      .col-xs-6.col-md-3
+        .form-group
+          = label_tag 'Stage'
+          = select_tag "lead_stages", options_from_collection_for_select(current_user.company.company_stages, :stage_id, :stage_name, params[:lead_stages]), class: "form-control multi-select-list", multiple: true, data: {prompt_name: 'Status'}
+      - if @company.setting.present? && @company.enable_country_in_project
+        .col-xs-6.col-md-3
+          .form-group
+            = label_tag "Country"
+            = select_tag :country_ids, options_from_collection_for_select(Country.all, :id, :name, params[:country_ids]),
+              multiple: true, class: "multi-select-list", data: {prompt_name: 'Country'}
+      .col-xs-6.col-md-3
+        .form-group
+          = label_tag "City"
+          = select_tag :city_ids, options_from_collection_for_select(City.all, :id, :name, params[:city_ids]),
+            multiple: true, class: "multi-select-list", data: {prompt_name: 'City'}
+      - if @company.is_allowed_field?("state")
+        .col-xs-6.col-md-3
+          .form-group
+            = label_tag "State"
+            = text_field_tag :state, params[:name], class: "form-control", placeholder: "State"
+      .col-md-2
+        .form-group.selct-check.mt-35
+          = label_tag "Visited"
+          = check_box_tag 'visited', true, (params[:visited] == "true")
+      .w-100
+      .col-xs-6.col-md-12
+        .form-group
+          = text_field_tag :comment, params[:comment], class: "form-control", placeholder: "Comment"
+      .w-100
+      .col-xs-6.col-md-3
+        .form-group
+          = label_tag "Assigned To"
+          = select_tag "assigned_to[]", options_from_collection_for_select(current_user.manageables, :id, :name, params[:assigned_to]), class: "form-control multi-select-list", multiple: true, data: {prompt_name: 'Assigned To'}
+      - if @company.setting.present? && @company.enable_meeting_executives && @company.is_allowed_field?("closing_executive")
+        .col-xs-6.col-md-3
+          .form-group
+            = label_tag "Closing Executive"
+            = select_tag "closing_executive[]", options_from_collection_for_select(current_user.manageables.meeting_executives, :id, :name, params[:closing_executive]), class: "form-control multi-select-list", multiple: true
+      .col-xs-6.col-md-3
+        .form-group
+          = label_tag "Manager"
+          = select_tag :manager_id, options_from_collection_for_select(current_user.manageables.managers, :id, :name, params[:manager_id]), prompt: "Select Manager", class: "form-control multiselect"
+      - if @company.is_allowed_field?("broker_id")
+        .col-xs-6.col-md-3
+          .form-group
+            = label_tag "Broker"
+            = select_tag :broker_ids, options_from_collection_for_select(current_user.company.brokers, :id, :name, params[:broker_ids]), class: "form-control multi-select-list", multiple: true, data: {prompt_name: 'Select Broker'}
+      .col-xs-6.col-md-3
+        .form-group
+          = label_tag "Dead Reason"
+          = select_tag :dead_reasons, options_from_collection_for_select(@company.reasons.active, :id, :reason, params[:dead_reasons]), class: "form-control multi-select-list", multiple: true
+      .w-100
+      - if @company.is_allowed_field?("token_date")
+        .col-xs-6.col-md-2
+          .form-group
+            .input-group
+              .input-group-addon
+                = fa_icon "calendar"
+              = text_field_tag :token_date_from, params[:token_date_from], class: "form-control dateFormat", placeholder: "Token Date From"
+        .col-xs-6.col-md-2
+          .form-group
+            .input-group
+              .input-group-addon
+                = fa_icon "calendar"
+              = text_field_tag :token_date_to, params[:token_date_to], class: "form-control dateFormat", placeholder: "Token Date to"
+      - if @company.is_allowed_field?("booking_date")
+        .col-xs-6.col-md-2
+          .form-group
+            .input-group
+              .input-group-addon
+                = fa_icon "calendar"
+              = text_field_tag :booking_date_from, params[:booking_date_from], class: "form-control dateFormat", placeholder: "Booking Date From"
+        .col-xs-6.col-md-2
+          .form-group
+            .input-group
+              .input-group-addon
+                = fa_icon "calendar"
+              = text_field_tag :booking_date_to, params[:booking_date_to], class: "form-control dateFormat", placeholder: "Booking Date to"
+      .w-100
+      - magic_fields.each do |field|
+        - custom_class = field.datatype == "check_box_boolean" ? 'mt-40' : ''
+        .col-md-3
+          .form-group{class: "#{custom_class}"}
+            - if field.datatype == 'string' || field.datatype=="integer"
+              - if field.is_select_list
+                = label_tag "#{field.pretty_name}"
+                = select_tag "#{field.name}", options_for_select(field.items, params["#{field.name}"]), class: 'form-control', prompt: "Please Select #{field.pretty_name}"
+              - else
+                = label_tag "#{field.pretty_name}"
+                = text_field_tag "#{field.name}", params["#{field.name}"], class: 'form-control'
+      .w-100
+      .col-md-2
+        .form-group.selct-check
+          %strong Save
+          = check_box_tag 'set_search', nil, false, class: 'select', id: "set_search"
+      .w-100
+      .col-md-3
+        .form-group
+          = text_field_tag :search_name, params[:search_name], class: "form-control", id: "save_search", placeholder: "Save Search Name", :disabled => true
+      .w-100
+      .col-xs-6.col-md-2
+        .form-group
+          = button_tag type: "submit", class: "btn btn-primary btn-flatbtn" do
+            = fa_icon "search"
+            Search
+:javascript
+  $('#set_search').change(function() {
+    if(this.checked) {
+      $("#save_search").prop('disabled', false);
+    }else{
+    $("#save_search").prop('disabled', true);
+    }
+  });
+
+  $('.multi-select-list').each(function(){
+    var text = $(this).closest('select').data('prompt-name')
+    text = text ? 'Select '+ text : 'Please Select'
+    $(this).multiselect({
+      numberDisplayed: 1,
+      enableFiltering: true,
+      enableCaseInsensitiveFiltering: true,
+      nonSelectedText: text,
+      includeSelectAllOption: true,
+      buttonWidth: '100%',
+      maxHeight: 350,
+    });
+  });

@@ -1,0 +1,47 @@
+.content-wrapper
+  .content-header
+    .container-fluid
+      .row.mb-2
+        .col-sm-12
+          %ol.breadcrumb
+            %li.breadcrumb-item
+              %a{:href => "/"} Home
+            %li.breadcrumb-item.active Fb Forms
+        .col-sm-12
+          %h1.m-0.text-dark Fb Forms
+  .content
+    .container-fluid
+      .row
+        .col-lg-12
+          .card
+            .card-body
+              %table.table
+                %thead
+                  %tr
+                    %th Name
+                    %th Form No.
+                    %th Project
+                    %th Comment
+                    %th Action
+                %tbody
+                  - @fb_forms_api.each do |form|
+                    - fb_forms_db = @fb_forms_db.detect{|k| k["form_no"] == form["id"]}
+                    %tr 
+                      %td
+                        = form["name"]
+                      %td
+                        = form["id"]
+                      %td
+                        = fb_forms_db["project_name"] rescue '-'
+                      %td.showmore
+                        = fb_forms_db["bind_comment"] rescue '-'
+                      - if fb_forms_db.blank?
+                        %td
+                          = link_to "+", new_fb_form_companies_fb_page_path(form_no: form["id"], title: form["name"], fb_id: @fb_page.page_fbid), remote: true, class: "btn btn-success btn-sm"
+                      - else
+                        %td
+                          = link_to edit_companies_fb_form_path(form["id"]), class: "btn btn-info btn-sm", remote: true do
+                            = fa_icon "pencil"
+                          |
+                          = link_to companies_fb_form_path(form["id"], fb_id: @fb_page.page_fbid), method: :delete, class: "btn btn-danger btn-sm", data: {confirm: "Are you sure?"} do
+                            = fa_icon "times"

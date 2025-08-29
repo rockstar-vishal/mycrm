@@ -1,0 +1,29 @@
+!!!
+%html
+  %head
+    %meta{:content => "text/html; charset=UTF-8", "http-equiv" => "Content-Type"}/
+    - if current_user.blank? || current_user.is_sysad?
+      - company = Company.find_by_domain(request.host)
+      - title = company.present? ? company.name : 'SellDo - Admin'
+      %title CRM - #{title}
+      = favicon_link_tag 'favicon.png'
+    - else
+      %title CRM - #{current_user.company.name}
+      = favicon_link_tag current_user.company.favicon.url(:original)
+    = stylesheet_link_tag 'application', media: 'all'
+    = javascript_include_tag 'https://js.pusher.com/7.0/pusher.min.js'
+    = javascript_include_tag 'application'
+    = Gon::Base.render_data
+    = csrf_meta_tags
+  %body.hold-transition.sidebar-mini.layout-fixed.layout-navbar-fixed.sidebar-collapse
+    = render partial: 'layouts/modal'
+    .wrapper
+      - if user_signed_in?
+        - if current_user.is_sysad?
+          = render partial: 'layouts/sysad_sidebar'
+        - elsif current_user.is_supervisor?
+          = render partial: 'layouts/supervisor_sidebar'
+        - else
+          = render partial: 'layouts/sidebar'
+      = flash_messages
+      = yield

@@ -1,0 +1,130 @@
+.content-wrapper
+  .content-header
+    .container-fluid
+      .row.mb-2
+        .col-md-9
+          %ol.breadcrumb
+            %li.breadcrumb-item
+              %a{:href => "/"} Home
+            %li.breadcrumb-item.active Marketing Report
+          %h1.m-0.text-dark Campaigns
+  .content
+    .container-fluid
+      .row
+        .col-lg-12
+          .card
+            .card-header
+              = link_to params.except(:action, :controller).merge!(format: :csv), class: "btn btn-primary btn-sm", style: "right: 5px;" do
+                = fa_icon "download"
+                Export
+            .card-body
+              - plottable = {}
+              .table-responsive
+                %table.table.table-bordered.table-hover.dataTables.table-sm.responsive.nowrap{style: 'width:100%!important'}
+                  %thead
+                    %tr
+                      %th.all #
+                      %th.all Title
+                      %th.all Start Date
+                      %th.all End Date
+                      %th.all Budget
+                      - if current_user.check_source_presence
+                        %th.all Source
+                      %th.all Leads
+                      %th.all Booked Leads
+                      %th.all Cost per Lead
+                      %th.all Visits
+                      %th.all Cost Per Visit
+                      %th.all Cost Per Booking
+                  - overall_campaign_budget = 0
+                  - overall_leads_count =0
+                  - overall_visits_count=0
+                  - overall_booked_leads=0
+                  - overall_costs_perlead=0
+                  - overall_costs_per_visit=0
+                  - overall_costs_per_booking=0
+                  %tbody
+                    - booking_data = @leads.booked_for(current_user.company)
+                    - visted_data = @leads.joins{visits}.uniq
+                    - @campaigns.each.with_index(1) do |campaign, index|
+                      %tr
+                        %td
+                          = index
+                        %td= link_to campaign.title, reports_campaign_detail_path(campaign.uuid), target: '_blank'
+                        %td
+                          = campaign.start_date&.strftime("%Y-%m-%d")
+                        %td
+                          = campaign.end_date&.strftime("%Y-%m-%d")
+                        %td
+                          = fa_icon "rupee"
+                          = Utility.to_words(campaign.budget)
+                          - overall_campaign_budget += campaign.budget
+                        - if current_user.check_source_presence
+                          %td
+                            = campaign.source_name
+                        - leads_count = @leads.where(source_id: campaign.source_id, created_at: campaign.start_date.beginning_of_day..campaign.end_date.end_of_day).count
+                        - plottable[campaign.title] = leads_count
+                        - overall_leads_count += leads_count
+                        %td
+                          - if leads_count > 0
+                            = link_to leads_count, leads_path(is_advanced_search: true, created_at_from: campaign.start_date.strftime("%d/%m/%Y"), created_at_upto: campaign.end_date.strftime("%d/%m/%Y"), source_id: [campaign.source_id]), target: "_blank"
+                          - else
+                            = leads_count
+                        %td
+                          - booked_leads_count = booking_data.where(source_id: campaign.source_id, created_at: campaign.start_date.beginning_of_day..campaign.end_date.end_of_day).count
+                          - overall_booked_leads += booked_leads_count
+                          -if booked_leads_count >0
+                            = link_to booked_leads_count, leads_path(is_advanced_search: true, created_at_from: campaign.start_date.strftime("%d/%m/%Y"), created_at_upto: campaign.end_date.strftime("%d/%m/%Y"), source_id: [campaign.source_id], lead_statuses: [current_user.company&.booking_done_id]), target: '_blank'
+                          -else
+                            = booked_leads_count
+                        %td
+                          - if leads_count > 0
+                            = fa_icon "rupee"
+                            - costs_per_lead = (campaign.budget/leads_count)
+                            - overall_costs_perlead += costs_per_lead
+                            = Utility.to_words(costs_per_lead)
+                          - else
+                            = 'N/A'
+                        - visit_leads_count = visted_data.where(source_id: campaign.source_id, created_at: campaign.start_date.beginning_of_day..campaign.end_date.end_of_day).count
+                        - overall_visits_count += visit_leads_count
+                        %td
+                          - if visit_leads_count > 0
+                            = link_to visit_leads_count, leads_path(is_advanced_search: true, created_at_from: campaign.start_date.strftime("%d/%m/%Y"), created_at_upto: campaign.end_date.strftime("%d/%m/%Y"), source_id: [campaign.source_id], visited: true), target: '_blank'
+                          - else
+                            = visit_leads_count
+                        %td
+                          - if visit_leads_count > 0
+                            = fa_icon "rupee"
+                            - cost_per_visit=(campaign.budget/visit_leads_count)
+                            - overall_costs_per_visit += cost_per_visit
+                            = Utility.to_words(cost_per_visit)
+                          - else
+                            = 'N/A'
+                        %td
+                          - if booked_leads_count > 0
+                            = fa_icon "rupee"
+                            -cost_per_booking=(campaign.budget/booked_leads_count)
+                            - overall_costs_per_booking +=cost_per_booking
+                            = Utility.to_words(cost_per_booking)
+                          - else
+                            = 'N/A'
+                  - if @campaigns.present?
+                    %tbody
+                      %td Total
+                      %td
+                      %td
+                      %td
+                      %td= Utility.to_words(overall_campaign_budget)
+                      - if current_user.check_source_presence
+                        %td
+                      %td
+                        = overall_leads_count
+                      %td
+                        =  overall_booked_leads
+                      %td=Utility.to_words(overall_costs_perlead)
+                      %td
+                        = overall_visits_count
+                      %td=Utility.to_words(overall_costs_per_visit)
+                      %td=Utility.to_words(overall_costs_per_booking)
+                .chart-canvas.d-none.d-sm-block.pieChart
+                  = pie_chart(plottable, library: {animation: {easing: 'easeOutQuart'}})

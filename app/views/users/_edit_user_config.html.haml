@@ -1,0 +1,33 @@
+.modal-header
+  %h5.modal-title Enable Round Robin
+  %button.close{"aria-label" => "Close", "data-dismiss" => "modal", :type => "button"}
+    %span{"aria-hidden" => "true"} ×
+.modal-body
+  = form_tag round_robin_users_path, method: :put, class: 'form-inline' do
+    .content
+    .container-fluid
+      .row
+        .col-lg-12
+          .card
+            .card-header
+            .card-body
+              .form-group
+              .table-responsive
+                %table.table.table-bordered.table-hover.dataTables.table-sm.responsive.nowrap{style: 'width:100%!important'}
+                  %thead
+                    %tr
+                      %th
+                      %th Name
+                      %th Email
+                  %tbody
+                    - @users.each do |user|
+                      %tr
+                        .form-group
+                          %td 
+                            = check_box_tag "users_list[]", user.id, user.round_robin_enabled?
+                          %td 
+                            = user.name
+                          %td 
+                            = user.email
+      = button_tag type: "submit", class: 'btn btn-primary mt-3 mb-2 pull-right' do
+        Enable

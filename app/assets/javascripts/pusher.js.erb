@@ -1,0 +1,17 @@
+function handlePusherSubscription(){
+  var pusher = new Pusher("<%= CRMConfig.pusher_key %>", {
+    cluster: 'ap2'
+  });
+  if (gon.channel && gon.pusher_active){
+    var channel = pusher.subscribe(gon.channel);
+    var events = gon.events
+    $.each(events , function(index, event) {
+      channel.bind(event, function(data) {
+        if(data["notifiables"].includes('all') || data["notifiables"].includes(gon.current_user_uuid)){
+          toastr.options.fadeOut = 20000;
+          toastr.info(data["message"])
+        }
+      });
+    });
+  }
+}
