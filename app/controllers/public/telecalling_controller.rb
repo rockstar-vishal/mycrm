@@ -17,6 +17,8 @@ module Public
         else
           render json: {message: "Failed", errors: lead.errors.full_messages.join(', ')}, status: 422 and return
         end
+      else
+        render json: {message: "Failed", errors: "Invalid Project Sent"}, status: 422 and return
       end
     end
 
