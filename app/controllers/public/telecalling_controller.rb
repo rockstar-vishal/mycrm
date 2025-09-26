@@ -13,7 +13,7 @@ module Public
           lead.user_id = assigned_to.id
         end
         if lead.save
-          render json: {message: "Success", data: {lead_no: lead.reload.lead_no}}, status: 201 and return
+          render json: {message: "Success", lead_no: lead.reload.lead_no}, status: 201 and return
         else
           render json: {message: "Failed", errors: lead.errors.full_messages.join(', ')}, status: 422 and return
         end
